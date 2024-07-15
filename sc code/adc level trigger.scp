@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ADC Level Trigger" version="2.9.0.208">
+    <desc><![CDATA[]]></desc>
+    <pattr name="Apply default power mode">0</pattr>
+    <pattr name="Board">CC2640R2 LaunchPad</pattr>
+    <pattr name="Chip name">CC2640R2F</pattr>
+    <pattr name="Chip package">QFN48 7x7 RGZ</pattr>
+    <pattr name="Chip revision">-</pattr>
+    <pattr name="Clock in active mode">0</pattr>
+    <pattr name="Code prefix"></pattr>
+    <pattr name="Default power mode">0</pattr>
+    <pattr name="Operating system">TI-RTOS</pattr>
+    <pattr name="Output directory">F:/Work/upwork/CC2640R2/MUX_ADC - modified/adc_mux/simple_adc_cc2640r2lp_app/SensorControllerLP</pattr>
+    <pattr name="RTC tick interval (16.16 format)">2000</pattr>
+    <pattr name="Run-time logging UART RX pin"></pattr>
+    <pattr name="Run-time logging UART TX pin"></pattr>
+    <task name="adc level trigger">
+        <desc><![CDATA[]]></desc>
+        <tattr name="CHANNELS" type="expr" content="const" scope="task" min="0" max="65535">12</tattr>
+        <tattr name="output.adcVal0" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="output.adcVal1" desc="ch1" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="output.adcVal10" desc="chan10" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="output.adcVal11" desc="chan11" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="output.adcVal2" desc="chan2" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="output.adcVal3" desc="chan3" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="output.adcVal4" desc="chan4" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="output.adcVal5" desc="chan5" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="output.adcVal6" desc="chan6" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="output.adcVal7" desc="chan7" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="output.adcVal8" desc="chan8" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="output.adcVal9" desc="chan9" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <tattr name="state.high" type="expr" content="struct" scope="task" min="0" max="65535">0</tattr>
+        <resource_ref name="ADC" enabled="1"/>
+        <resource_ref name="AON Domain Functionality" enabled="0"/>
+        <resource_ref name="Accumulator-Based Math" enabled="0"/>
+        <resource_ref name="Analog Open-Drain Pins" enabled="0"/>
+        <resource_ref name="Analog Open-Source Pins" enabled="0"/>
+        <resource_ref name="Analog Pins" enabled="1">
+            <io_usage name="ADC_INPUT0" label="23">
+                <uattr name="Pin count">0</uattr>
+                <uattr name="Pin/0000">DIO23</uattr>
+                <uattr name="Pin/0001"></uattr>
+                <uattr name="Pin/0002"></uattr>
+                <uattr name="Pin/0003"></uattr>
+                <uattr name="Pin/0004"></uattr>
+                <uattr name="Pin/0005"></uattr>
+                <uattr name="Pin/0006"></uattr>
+                <uattr name="Pin/0007"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="COMPA" enabled="0"/>
+        <resource_ref name="COMPA Event Trigger" enabled="0"/>
+        <resource_ref name="COMPB" enabled="0"/>
+        <resource_ref name="COMPB Event Trigger" enabled="0"/>
+        <resource_ref name="Delay Insertion" enabled="1"/>
+        <resource_ref name="Differential Output Pins" enabled="0"/>
+        <resource_ref name="Digital Input Pins" enabled="0"/>
+        <resource_ref name="Digital Open-Drain Pins" enabled="0"/>
+        <resource_ref name="Digital Open-Source Pins" enabled="0"/>
+        <resource_ref name="Digital Output Pins" enabled="1">
+            <io_usage name="S0" label="Select S0">
+                <uattr name="Configuration on uninitialization">-1</uattr>
+                <uattr name="Output drive strength">0</uattr>
+                <uattr name="Output value on initialization">0</uattr>
+                <uattr name="Pin count">0</uattr>
+                <uattr name="Pin/0000">DIO24</uattr>
+                <uattr name="Pin/0001"></uattr>
+                <uattr name="Pin/0002"></uattr>
+                <uattr name="Pin/0003"></uattr>
+                <uattr name="Pin/0004"></uattr>
+                <uattr name="Pin/0005"></uattr>
+                <uattr name="Pin/0006"></uattr>
+                <uattr name="Pin/0007"></uattr>
+                <uattr name="Pin/0008"></uattr>
+                <uattr name="Pin/0009"></uattr>
+                <uattr name="Pin/0010"></uattr>
+                <uattr name="Pin/0011"></uattr>
+                <uattr name="Pin/0012"></uattr>
+                <uattr name="Pin/0013"></uattr>
+                <uattr name="Pin/0014"></uattr>
+                <uattr name="Pin/0015"></uattr>
+                <uattr name="Pin/0016"></uattr>
+                <uattr name="Pin/0017"></uattr>
+                <uattr name="Pin/0018"></uattr>
+                <uattr name="Pin/0019"></uattr>
+                <uattr name="Pin/0020"></uattr>
+                <uattr name="Pin/0021"></uattr>
+                <uattr name="Pin/0022"></uattr>
+                <uattr name="Pin/0023"></uattr>
+                <uattr name="Pin/0024"></uattr>
+                <uattr name="Pin/0025"></uattr>
+                <uattr name="Pin/0026"></uattr>
+                <uattr name="Pin/0027"></uattr>
+                <uattr name="Pin/0028"></uattr>
+                <uattr name="Pin/0029"></uattr>
+                <uattr name="Pin/0030"></uattr>
+                <uattr name="Pin/0031"></uattr>
+            </io_usage>
+            <io_usage name="S1" label="Select S1">
+                <uattr name="Configuration on uninitialization">-1</uattr>
+                <uattr name="Output drive strength">0</uattr>
+                <uattr name="Output value on initialization">0</uattr>
+                <uattr name="Pin count">0</uattr>
+                <uattr name="Pin/0000">DIO25</uattr>
+                <uattr name="Pin/0001"></uattr>
+                <uattr name="Pin/0002"></uattr>
+                <uattr name="Pin/0003"></uattr>
+                <uattr name="Pin/0004"></uattr>
+                <uattr name="Pin/0005"></uattr>
+                <uattr name="Pin/0006"></uattr>
+                <uattr name="Pin/0007"></uattr>
+                <uattr name="Pin/0008"></uattr>
+                <uattr name="Pin/0009"></uattr>
+                <uattr name="Pin/0010"></uattr>
+                <uattr name="Pin/0011"></uattr>
+                <uattr name="Pin/0012"></uattr>
+                <uattr name="Pin/0013"></uattr>
+                <uattr name="Pin/0014"></uattr>
+                <uattr name="Pin/0015"></uattr>
+                <uattr name="Pin/0016"></uattr>
+                <uattr name="Pin/0017"></uattr>
+                <uattr name="Pin/0018"></uattr>
+                <uattr name="Pin/0019"></uattr>
+                <uattr name="Pin/0020"></uattr>
+                <uattr name="Pin/0021"></uattr>
+                <uattr name="Pin/0022"></uattr>
+                <uattr name="Pin/0023"></uattr>
+                <uattr name="Pin/0024"></uattr>
+                <uattr name="Pin/0025"></uattr>
+                <uattr name="Pin/0026"></uattr>
+                <uattr name="Pin/0027"></uattr>
+                <uattr name="Pin/0028"></uattr>
+                <uattr name="Pin/0029"></uattr>
+                <uattr name="Pin/0030"></uattr>
+                <uattr name="Pin/0031"></uattr>
+            </io_usage>
+            <io_usage name="S2" label="Mux Select S2">
+                <uattr name="Configuration on uninitialization">-1</uattr>
+                <uattr name="Output drive strength">0</uattr>
+                <uattr name="Output value on initialization">0</uattr>
+                <uattr name="Pin count">0</uattr>
+                <uattr name="Pin/0000">DIO26</uattr>
+                <uattr name="Pin/0001"></uattr>
+                <uattr name="Pin/0002"></uattr>
+                <uattr name="Pin/0003"></uattr>
+                <uattr name="Pin/0004"></uattr>
+                <uattr name="Pin/0005"></uattr>
+                <uattr name="Pin/0006"></uattr>
+                <uattr name="Pin/0007"></uattr>
+                <uattr name="Pin/0008"></uattr>
+                <uattr name="Pin/0009"></uattr>
+                <uattr name="Pin/0010"></uattr>
+                <uattr name="Pin/0011"></uattr>
+                <uattr name="Pin/0012"></uattr>
+                <uattr name="Pin/0013"></uattr>
+                <uattr name="Pin/0014"></uattr>
+                <uattr name="Pin/0015"></uattr>
+                <uattr name="Pin/0016"></uattr>
+                <uattr name="Pin/0017"></uattr>
+                <uattr name="Pin/0018"></uattr>
+                <uattr name="Pin/0019"></uattr>
+                <uattr name="Pin/0020"></uattr>
+                <uattr name="Pin/0021"></uattr>
+                <uattr name="Pin/0022"></uattr>
+                <uattr name="Pin/0023"></uattr>
+                <uattr name="Pin/0024"></uattr>
+                <uattr name="Pin/0025"></uattr>
+                <uattr name="Pin/0026"></uattr>
+                <uattr name="Pin/0027"></uattr>
+                <uattr name="Pin/0028"></uattr>
+                <uattr name="Pin/0029"></uattr>
+                <uattr name="Pin/0030"></uattr>
+                <uattr name="Pin/0031"></uattr>
+            </io_usage>
+            <io_usage name="S3" label="Mux Select S3">
+                <uattr name="Configuration on uninitialization">-1</uattr>
+                <uattr name="Output drive strength">0</uattr>
+                <uattr name="Output value on initialization">0</uattr>
+                <uattr name="Pin count">0</uattr>
+                <uattr name="Pin/0000">DIO27</uattr>
+                <uattr name="Pin/0001"></uattr>
+                <uattr name="Pin/0002"></uattr>
+                <uattr name="Pin/0003"></uattr>
+                <uattr name="Pin/0004"></uattr>
+                <uattr name="Pin/0005"></uattr>
+                <uattr name="Pin/0006"></uattr>
+                <uattr name="Pin/0007"></uattr>
+                <uattr name="Pin/0008"></uattr>
+                <uattr name="Pin/0009"></uattr>
+                <uattr name="Pin/0010"></uattr>
+                <uattr name="Pin/0011"></uattr>
+                <uattr name="Pin/0012"></uattr>
+                <uattr name="Pin/0013"></uattr>
+                <uattr name="Pin/0014"></uattr>
+                <uattr name="Pin/0015"></uattr>
+                <uattr name="Pin/0016"></uattr>
+                <uattr name="Pin/0017"></uattr>
+                <uattr name="Pin/0018"></uattr>
+                <uattr name="Pin/0019"></uattr>
+                <uattr name="Pin/0020"></uattr>
+                <uattr name="Pin/0021"></uattr>
+                <uattr name="Pin/0022"></uattr>
+                <uattr name="Pin/0023"></uattr>
+                <uattr name="Pin/0024"></uattr>
+                <uattr name="Pin/0025"></uattr>
+                <uattr name="Pin/0026"></uattr>
+                <uattr name="Pin/0027"></uattr>
+                <uattr name="Pin/0028"></uattr>
+                <uattr name="Pin/0029"></uattr>
+                <uattr name="Pin/0030"></uattr>
+                <uattr name="Pin/0031"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="Dynamic Power Control" enabled="0"/>
+        <resource_ref name="GPIO Event Trigger" enabled="0"/>
+        <resource_ref name="I2C Master" enabled="0">
+            <rattr name="SCL frequency">0</rattr>
+            <rattr name="SCL stretch timeout">1</rattr>
+            <io_usage>
+                <uattr name="Output drive strength">1</uattr>
+                <uattr name="SCL pin/0000"></uattr>
+                <uattr name="SDA pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="ISRC" enabled="0"/>
+        <resource_ref name="LCD Controller" enabled="0">
+            <rattr name="Waveform state count">8</rattr>
+            <io_usage>
+                <uattr name="Output drive strength">0</uattr>
+                <uattr name="Pin count">20</uattr>
+                <uattr name="Pin/0000"></uattr>
+                <uattr name="Pin/0001"></uattr>
+                <uattr name="Pin/0002"></uattr>
+                <uattr name="Pin/0003"></uattr>
+                <uattr name="Pin/0004"></uattr>
+                <uattr name="Pin/0005"></uattr>
+                <uattr name="Pin/0006"></uattr>
+                <uattr name="Pin/0007"></uattr>
+                <uattr name="Pin/0008"></uattr>
+                <uattr name="Pin/0009"></uattr>
+                <uattr name="Pin/0010"></uattr>
+                <uattr name="Pin/0011"></uattr>
+                <uattr name="Pin/0012"></uattr>
+                <uattr name="Pin/0013"></uattr>
+                <uattr name="Pin/0014"></uattr>
+                <uattr name="Pin/0015"></uattr>
+                <uattr name="Pin/0016"></uattr>
+                <uattr name="Pin/0017"></uattr>
+                <uattr name="Pin/0018"></uattr>
+                <uattr name="Pin/0019"></uattr>
+                <uattr name="Pin/0020"></uattr>
+                <uattr name="Pin/0021"></uattr>
+                <uattr name="Pin/0022"></uattr>
+                <uattr name="Pin/0023"></uattr>
+                <uattr name="Pin/0024"></uattr>
+                <uattr name="Pin/0025"></uattr>
+                <uattr name="Pin/0026"></uattr>
+                <uattr name="Pin/0027"></uattr>
+                <uattr name="Pin/0028"></uattr>
+                <uattr name="Pin/0029"></uattr>
+                <uattr name="Pin/0030"></uattr>
+                <uattr name="Pin/0031"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="Math and Logic" enabled="0"/>
+        <resource_ref name="Multi-Buffered Output Data Exchange" enabled="0">
+            <rattr name="Buffer count">2</rattr>
+            <rattr name="Indicate overflow at buffer check">1</rattr>
+            <rattr name="Indicate overflow at buffer switch">0</rattr>
+            <rattr name="Prevent overflow at buffer switch">1</rattr>
+        </resource_ref>
+        <resource_ref name="Peripheral Sharing" enabled="0"/>
+        <resource_ref name="Pulse Counter" enabled="0"/>
+        <resource_ref name="RTC Multi-Event Capture" enabled="0"/>
+        <resource_ref name="RTC-Based Execution Scheduling" enabled="1"/>
+        <resource_ref name="Reference DAC" enabled="0"/>
+        <resource_ref name="Run-Time Logging" enabled="0"/>
+        <resource_ref name="SPI Chip Select" enabled="0"/>
+        <resource_ref name="SPI Data Transfer" enabled="0">
+            <rattr name="Bit rate">0</rattr>
+            <rattr name="MISO configuration when inactive">-1</rattr>
+            <rattr name="MOSI configuration on initialization">0</rattr>
+            <rattr name="MOSI configuration on uninitialization">0</rattr>
+            <rattr name="SCLK configuration on initialization">0</rattr>
+            <rattr name="SCLK configuration on uninitialization">0</rattr>
+            <io_usage>
+                <uattr name="MISO pin/0000"></uattr>
+                <uattr name="MOSI pin/0000"></uattr>
+                <uattr name="SCLK pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <resource_ref name="Signal Observation" enabled="0"/>
+        <resource_ref name="System CPU Alert" enabled="1"/>
+        <resource_ref name="System Event Trigger" enabled="0"/>
+        <resource_ref name="TDC" enabled="0"/>
+        <resource_ref name="Timer 0" enabled="0"/>
+        <resource_ref name="Timer 0 Event Trigger" enabled="0"/>
+        <resource_ref name="Timer 1" enabled="0"/>
+        <resource_ref name="Timer 1 Event Trigger" enabled="0"/>
+        <resource_ref name="Timer 2" enabled="0"/>
+        <resource_ref name="Timer 2 Event Trigger" enabled="0"/>
+        <resource_ref name="UART Emulator" enabled="0">
+            <rattr name="RX buffer size">64</rattr>
+            <rattr name="Required idle period before enabling RX">11</rattr>
+            <rattr name="TX buffer size">64</rattr>
+            <io_usage>
+                <uattr name="RX pin/0000"></uattr>
+                <uattr name="TX pin/0000"></uattr>
+            </io_usage>
+        </resource_ref>
+        <sccode name="event0" init_power_mode="0"><![CDATA[]]></sccode>
+        <sccode name="event1" init_power_mode="0"><![CDATA[]]></sccode>
+        <sccode name="event2" init_power_mode="0"><![CDATA[]]></sccode>
+        <sccode name="event3" init_power_mode="0"><![CDATA[]]></sccode>
+        <sccode name="execute" init_power_mode="0"><![CDATA[// Enable the ADC
+fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+
+//Select CHAN 0
+gpioClearOutput(AUXIO_O_S0);
+gpioClearOutput(AUXIO_O_S1);
+gpioClearOutput(AUXIO_O_S2);
+gpioClearOutput(AUXIO_O_S3);
+adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+
+// Sample the analog sensor
+adcGenManualTrigger();
+adcReadFifo(output.adcVal0);
+adcFlushFifo();
+// Disable the ADC
+adcDisable();
+
+// Enable the ADC
+fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+
+//Select CHAN 1
+gpioSetOutput(AUXIO_O_S0);
+gpioClearOutput(AUXIO_O_S1);
+gpioClearOutput(AUXIO_O_S2);
+gpioClearOutput(AUXIO_O_S3);
+adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+
+// Sample the analog sensor
+adcGenManualTrigger();
+adcReadFifo(output.adcVal1);
+adcFlushFifo();
+// Disable the ADC
+adcDisable();
+
+// Enable the ADC
+fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+
+
+//Select CHAN 2
+gpioClearOutput(AUXIO_O_S0);
+gpioSetOutput(AUXIO_O_S1);
+gpioClearOutput(AUXIO_O_S2);
+gpioClearOutput(AUXIO_O_S3);
+adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+
+// Sample the analog sensor
+adcGenManualTrigger();
+adcReadFifo(output.adcVal2);
+adcFlushFifo();
+// Disable the ADC
+adcDisable();
+
+// Enable the ADC
+fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+
+
+//Select CHAN 3
+gpioSetOutput(AUXIO_O_S0);
+gpioSetOutput(AUXIO_O_S1);
+gpioClearOutput(AUXIO_O_S2);
+gpioClearOutput(AUXIO_O_S3);
+adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+
+// Sample the analog sensor
+adcGenManualTrigger();
+adcReadFifo(output.adcVal3);
+adcFlushFifo();
+// Disable the ADC
+adcDisable();
+
+
+// Enable the ADC
+fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+
+//Select CHAN 4
+gpioClearOutput(AUXIO_O_S0);
+gpioClearOutput(AUXIO_O_S1);
+gpioSetOutput(AUXIO_O_S2);
+gpioClearOutput(AUXIO_O_S3);
+adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+
+// Sample the analog sensor
+adcGenManualTrigger();
+adcReadFifo(output.adcVal4);
+adcFlushFifo();
+// Disable the ADC
+adcDisable();
+
+
+// Enable the ADC
+fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+
+
+//Select CHAN 5
+gpioSetOutput(AUXIO_O_S0);
+gpioClearOutput(AUXIO_O_S1);
+gpioSetOutput(AUXIO_O_S2);
+gpioClearOutput(AUXIO_O_S3);
+adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+
+// Sample the analog sensor
+adcGenManualTrigger();
+adcReadFifo(output.adcVal5);
+adcFlushFifo();
+// Disable the ADC
+adcDisable();
+
+// Enable the ADC
+fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+
+//Select CHAN 6
+gpioClearOutput(AUXIO_O_S0);
+gpioSetOutput(AUXIO_O_S1);
+gpioSetOutput(AUXIO_O_S2);
+gpioClearOutput(AUXIO_O_S3);
+adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+
+// Sample the analog sensor
+adcGenManualTrigger();
+adcReadFifo(output.adcVal6);
+adcFlushFifo();
+// Disable the ADC
+adcDisable();
+
+
+// Enable the ADC
+fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+
+//Select CHAN 7
+gpioSetOutput(AUXIO_O_S0);
+gpioSetOutput(AUXIO_O_S1);
+gpioSetOutput(AUXIO_O_S2);
+gpioClearOutput(AUXIO_O_S3);
+adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+
+// Sample the analog sensor
+adcGenManualTrigger();
+adcReadFifo(output.adcVal7);
+adcFlushFifo();
+// Disable the ADC
+adcDisable();
+
+
+// Enable the ADC
+fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+
+
+//Select CHAN 8
+gpioClearOutput(AUXIO_O_S0);
+gpioClearOutput(AUXIO_O_S1);
+gpioClearOutput(AUXIO_O_S2);
+gpioSetOutput(AUXIO_O_S3);
+adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+
+// Sample the analog sensor
+adcGenManualTrigger();
+adcReadFifo(output.adcVal8);
+adcFlushFifo();
+// Disable the ADC
+adcDisable();
+
+
+// Enable the ADC
+fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+
+
+//Select CHAN 9
+gpioSetOutput(AUXIO_O_S0);
+gpioClearOutput(AUXIO_O_S1);
+gpioClearOutput(AUXIO_O_S2);
+gpioSetOutput(AUXIO_O_S3);
+adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+
+// Sample the analog sensor
+adcGenManualTrigger();
+adcReadFifo(output.adcVal9);
+adcFlushFifo();
+// Disable the ADC
+adcDisable();
+
+
+// Enable the ADC
+fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+
+
+//Select CHAN 10
+gpioClearOutput(AUXIO_O_S0);
+gpioSetOutput(AUXIO_O_S1);
+gpioClearOutput(AUXIO_O_S2);
+gpioSetOutput(AUXIO_O_S3);
+adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+
+//disable input scaling: signal should be <1.49V
+adcDisableInputScaling();
+
+adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+
+// Sample the analog sensor
+adcGenManualTrigger();
+adcReadFifo(output.adcVal10);
+adcFlushFifo();
+// Disable the ADC
+//also enables scaling to VDD
+adcDisable();
+
+
+// Enable the ADC
+fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+
+
+//Select CHAN 11
+gpioSetOutput(AUXIO_O_S0);
+gpioSetOutput(AUXIO_O_S1);
+gpioClearOutput(AUXIO_O_S2);
+gpioSetOutput(AUXIO_O_S3);
+adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+
+//disable input scaling: signal should be <1.49V
+adcDisableInputScaling();
+adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+
+// Sample the analog sensor
+adcGenManualTrigger();
+adcReadFifo(output.adcVal11);
+adcFlushFifo();
+// Disable the ADC
+//also enables scaling to VDD
+adcDisable();
+
+// Signal the application processor.
+fwGenAlertInterrupt();
+
+// Schedule the next execution
+fwScheduleTask(1);]]></sccode>
+        <sccode name="initialize" init_power_mode="0"><![CDATA[// Select ADC input
+
+// Schedule the first execution
+fwScheduleTask(1);]]></sccode>
+        <sccode name="terminate" init_power_mode="0"><![CDATA[]]></sccode>
+        <event_trigger active_count="1">0,1,2,3</event_trigger>
+        <tt_iter>run_execute</tt_iter>
+        <tt_struct></tt_struct>
+        <rtl_struct></rtl_struct>
+        <rtl_task_sel en="1" struct_log_list="output"/>
+    </task>
+</project>

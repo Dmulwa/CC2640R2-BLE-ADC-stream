@@ -1,0 +1,257 @@
+[
+  {
+    "text": "connection_monitor",
+    "type": "folder",
+    "numChildren": 1,
+    "numChildrenLocal": 1,
+    "children": true,
+    "state": {
+      "opened": false
+    },
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "url": "/api/resources?path=Wireless%20connectivity/Embedded%20Software/SimpleLink%20CC2640R2%20SDK/Examples/Development%20Tools/CC2640R2%20LaunchPad/blestack&package=com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::xdctools__3.51.03.28::sysconfig__1.20.0::LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "downloadLink": "api/bundle?vid=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03&download=true",
+    "makeofflineLink": "api/bundles?vids=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "removeofflineLink": "api/resources?package=LPCS-DEVICE-SUPPORT__3.19.00.12::com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::sysconfig__1.20.0::xdctools__3.51.03.28&path=Wireless connectivity/Embedded Software/SimpleLink CC2640R2 SDK/Examples/Development Tools/CC2640R2 LaunchPad/blestack/connection_monitor&removeoffline=true",
+    "overviewLink": "c:/ti/simplelink_cc2640r2_sdk_5_30_00_03/examples/rtos/CC2640R2_LAUNCHXL/blestack/connection_monitor/README.html",
+    "packageOrder": 431
+  },
+  {
+    "text": "host_test",
+    "type": "folder",
+    "numChildren": 1,
+    "numChildrenLocal": 1,
+    "children": true,
+    "state": {
+      "opened": false
+    },
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "url": "/api/resources?path=Wireless%20connectivity/Embedded%20Software/SimpleLink%20CC2640R2%20SDK/Examples/Development%20Tools/CC2640R2%20LaunchPad/blestack&package=com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::xdctools__3.51.03.28::sysconfig__1.20.0::LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "downloadLink": "api/bundle?vid=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03&download=true",
+    "makeofflineLink": "api/bundles?vids=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "removeofflineLink": "api/resources?package=LPCS-DEVICE-SUPPORT__3.19.00.12::com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::sysconfig__1.20.0::xdctools__3.51.03.28&path=Wireless connectivity/Embedded Software/SimpleLink CC2640R2 SDK/Examples/Development Tools/CC2640R2 LaunchPad/blestack/host_test&removeoffline=true",
+    "overviewLink": "c:/ti/simplelink_cc2640r2_sdk_5_30_00_03/examples/rtos/CC2640R2_LAUNCHXL/blestack/host_test/README.html",
+    "packageOrder": 431
+  },
+  {
+    "text": "micro_ble_test",
+    "type": "folder",
+    "numChildren": 1,
+    "numChildrenLocal": 1,
+    "children": true,
+    "state": {
+      "opened": false
+    },
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "url": "/api/resources?path=Wireless%20connectivity/Embedded%20Software/SimpleLink%20CC2640R2%20SDK/Examples/Development%20Tools/CC2640R2%20LaunchPad/blestack&package=com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::xdctools__3.51.03.28::sysconfig__1.20.0::LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "downloadLink": "api/bundle?vid=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03&download=true",
+    "makeofflineLink": "api/bundles?vids=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "removeofflineLink": "api/resources?package=LPCS-DEVICE-SUPPORT__3.19.00.12::com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::sysconfig__1.20.0::xdctools__3.51.03.28&path=Wireless connectivity/Embedded Software/SimpleLink CC2640R2 SDK/Examples/Development Tools/CC2640R2 LaunchPad/blestack/micro_ble_test&removeoffline=true",
+    "overviewLink": "c:/ti/simplelink_cc2640r2_sdk_5_30_00_03/examples/rtos/CC2640R2_LAUNCHXL/blestack/micro_ble_test/README.html",
+    "packageOrder": 431
+  },
+  {
+    "text": "micro_eddystone_beacon",
+    "type": "folder",
+    "numChildren": 1,
+    "numChildrenLocal": 1,
+    "children": true,
+    "state": {
+      "opened": false
+    },
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "url": "/api/resources?path=Wireless%20connectivity/Embedded%20Software/SimpleLink%20CC2640R2%20SDK/Examples/Development%20Tools/CC2640R2%20LaunchPad/blestack&package=com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::xdctools__3.51.03.28::sysconfig__1.20.0::LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "downloadLink": "api/bundle?vid=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03&download=true",
+    "makeofflineLink": "api/bundles?vids=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "removeofflineLink": "api/resources?package=LPCS-DEVICE-SUPPORT__3.19.00.12::com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::sysconfig__1.20.0::xdctools__3.51.03.28&path=Wireless connectivity/Embedded Software/SimpleLink CC2640R2 SDK/Examples/Development Tools/CC2640R2 LaunchPad/blestack/micro_eddystone_beacon&removeoffline=true",
+    "overviewLink": "c:/ti/simplelink_cc2640r2_sdk_5_30_00_03/examples/rtos/CC2640R2_LAUNCHXL/blestack/micro_eddystone_beacon/README.html",
+    "packageOrder": 431
+  },
+  {
+    "text": "multi_role",
+    "type": "folder",
+    "numChildren": 1,
+    "numChildrenLocal": 1,
+    "children": true,
+    "state": {
+      "opened": false
+    },
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "url": "/api/resources?path=Wireless%20connectivity/Embedded%20Software/SimpleLink%20CC2640R2%20SDK/Examples/Development%20Tools/CC2640R2%20LaunchPad/blestack&package=com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::xdctools__3.51.03.28::sysconfig__1.20.0::LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "downloadLink": "api/bundle?vid=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03&download=true",
+    "makeofflineLink": "api/bundles?vids=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "removeofflineLink": "api/resources?package=LPCS-DEVICE-SUPPORT__3.19.00.12::com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::sysconfig__1.20.0::xdctools__3.51.03.28&path=Wireless connectivity/Embedded Software/SimpleLink CC2640R2 SDK/Examples/Development Tools/CC2640R2 LaunchPad/blestack/multi_role&removeoffline=true",
+    "overviewLink": "c:/ti/simplelink_cc2640r2_sdk_5_30_00_03/examples/rtos/CC2640R2_LAUNCHXL/blestack/multi_role/README.html",
+    "packageOrder": 431
+  },
+  {
+    "text": "project_zero",
+    "type": "folder",
+    "numChildren": 1,
+    "numChildrenLocal": 1,
+    "children": true,
+    "state": {
+      "opened": false
+    },
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "url": "/api/resources?path=Wireless%20connectivity/Embedded%20Software/SimpleLink%20CC2640R2%20SDK/Examples/Development%20Tools/CC2640R2%20LaunchPad/blestack&package=com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::xdctools__3.51.03.28::sysconfig__1.20.0::LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "downloadLink": "api/bundle?vid=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03&download=true",
+    "makeofflineLink": "api/bundles?vids=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "removeofflineLink": "api/resources?package=LPCS-DEVICE-SUPPORT__3.19.00.12::com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::sysconfig__1.20.0::xdctools__3.51.03.28&path=Wireless connectivity/Embedded Software/SimpleLink CC2640R2 SDK/Examples/Development Tools/CC2640R2 LaunchPad/blestack/project_zero&removeoffline=true",
+    "overviewLink": "c:/ti/simplelink_cc2640r2_sdk_5_30_00_03/examples/rtos/CC2640R2_LAUNCHXL/blestack/project_zero/README.html",
+    "packageOrder": 431
+  },
+  {
+    "text": "secure_fw",
+    "type": "folder",
+    "numChildren": 1,
+    "numChildrenLocal": 1,
+    "children": true,
+    "state": {
+      "opened": false
+    },
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "url": "/api/resources?path=Wireless%20connectivity/Embedded%20Software/SimpleLink%20CC2640R2%20SDK/Examples/Development%20Tools/CC2640R2%20LaunchPad/blestack&package=com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::xdctools__3.51.03.28::sysconfig__1.20.0::LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "downloadLink": "api/bundle?vid=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03&download=true",
+    "makeofflineLink": "api/bundles?vids=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "removeofflineLink": "api/resources?package=LPCS-DEVICE-SUPPORT__3.19.00.12::com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::sysconfig__1.20.0::xdctools__3.51.03.28&path=Wireless connectivity/Embedded Software/SimpleLink CC2640R2 SDK/Examples/Development Tools/CC2640R2 LaunchPad/blestack/secure_fw&removeoffline=true",
+    "overviewLink": "c:/ti/simplelink_cc2640r2_sdk_5_30_00_03/examples/rtos/CC2640R2_LAUNCHXL/blestack/secure_fw/README.html",
+    "packageOrder": 431
+  },
+  {
+    "text": "simple_broadcaster",
+    "type": "folder",
+    "numChildren": 1,
+    "numChildrenLocal": 1,
+    "children": true,
+    "state": {
+      "opened": false
+    },
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "url": "/api/resources?path=Wireless%20connectivity/Embedded%20Software/SimpleLink%20CC2640R2%20SDK/Examples/Development%20Tools/CC2640R2%20LaunchPad/blestack&package=com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::xdctools__3.51.03.28::sysconfig__1.20.0::LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "downloadLink": "api/bundle?vid=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03&download=true",
+    "makeofflineLink": "api/bundles?vids=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "removeofflineLink": "api/resources?package=LPCS-DEVICE-SUPPORT__3.19.00.12::com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::sysconfig__1.20.0::xdctools__3.51.03.28&path=Wireless connectivity/Embedded Software/SimpleLink CC2640R2 SDK/Examples/Development Tools/CC2640R2 LaunchPad/blestack/simple_broadcaster&removeoffline=true",
+    "overviewLink": "c:/ti/simplelink_cc2640r2_sdk_5_30_00_03/examples/rtos/CC2640R2_LAUNCHXL/blestack/simple_broadcaster/README.html",
+    "packageOrder": 431
+  },
+  {
+    "text": "simple_central",
+    "type": "folder",
+    "numChildren": 1,
+    "numChildrenLocal": 1,
+    "children": true,
+    "state": {
+      "opened": false
+    },
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "url": "/api/resources?path=Wireless%20connectivity/Embedded%20Software/SimpleLink%20CC2640R2%20SDK/Examples/Development%20Tools/CC2640R2%20LaunchPad/blestack&package=com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::xdctools__3.51.03.28::sysconfig__1.20.0::LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "downloadLink": "api/bundle?vid=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03&download=true",
+    "makeofflineLink": "api/bundles?vids=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "removeofflineLink": "api/resources?package=LPCS-DEVICE-SUPPORT__3.19.00.12::com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::sysconfig__1.20.0::xdctools__3.51.03.28&path=Wireless connectivity/Embedded Software/SimpleLink CC2640R2 SDK/Examples/Development Tools/CC2640R2 LaunchPad/blestack/simple_central&removeoffline=true",
+    "overviewLink": "c:/ti/simplelink_cc2640r2_sdk_5_30_00_03/examples/rtos/CC2640R2_LAUNCHXL/blestack/simple_central/README.html",
+    "packageOrder": 431
+  },
+  {
+    "text": "simple_np",
+    "type": "folder",
+    "numChildren": 1,
+    "numChildrenLocal": 1,
+    "children": true,
+    "state": {
+      "opened": false
+    },
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "url": "/api/resources?path=Wireless%20connectivity/Embedded%20Software/SimpleLink%20CC2640R2%20SDK/Examples/Development%20Tools/CC2640R2%20LaunchPad/blestack&package=com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::xdctools__3.51.03.28::sysconfig__1.20.0::LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "downloadLink": "api/bundle?vid=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03&download=true",
+    "makeofflineLink": "api/bundles?vids=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "removeofflineLink": "api/resources?package=LPCS-DEVICE-SUPPORT__3.19.00.12::com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::sysconfig__1.20.0::xdctools__3.51.03.28&path=Wireless connectivity/Embedded Software/SimpleLink CC2640R2 SDK/Examples/Development Tools/CC2640R2 LaunchPad/blestack/simple_np&removeoffline=true",
+    "overviewLink": "c:/ti/simplelink_cc2640r2_sdk_5_30_00_03/examples/rtos/CC2640R2_LAUNCHXL/blestack/simple_np/README.html",
+    "packageOrder": 431
+  },
+  {
+    "text": "simple_observer",
+    "type": "folder",
+    "numChildren": 1,
+    "numChildrenLocal": 1,
+    "children": true,
+    "state": {
+      "opened": false
+    },
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "url": "/api/resources?path=Wireless%20connectivity/Embedded%20Software/SimpleLink%20CC2640R2%20SDK/Examples/Development%20Tools/CC2640R2%20LaunchPad/blestack&package=com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::xdctools__3.51.03.28::sysconfig__1.20.0::LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "downloadLink": "api/bundle?vid=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03&download=true",
+    "makeofflineLink": "api/bundles?vids=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "removeofflineLink": "api/resources?package=LPCS-DEVICE-SUPPORT__3.19.00.12::com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::sysconfig__1.20.0::xdctools__3.51.03.28&path=Wireless connectivity/Embedded Software/SimpleLink CC2640R2 SDK/Examples/Development Tools/CC2640R2 LaunchPad/blestack/simple_observer&removeoffline=true",
+    "overviewLink": "c:/ti/simplelink_cc2640r2_sdk_5_30_00_03/examples/rtos/CC2640R2_LAUNCHXL/blestack/simple_observer/README.html",
+    "packageOrder": 431
+  },
+  {
+    "text": "simple_peripheral",
+    "type": "folder",
+    "numChildren": 1,
+    "numChildrenLocal": 1,
+    "children": true,
+    "state": {
+      "opened": false
+    },
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "url": "/api/resources?path=Wireless%20connectivity/Embedded%20Software/SimpleLink%20CC2640R2%20SDK/Examples/Development%20Tools/CC2640R2%20LaunchPad/blestack&package=com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::xdctools__3.51.03.28::sysconfig__1.20.0::LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "downloadLink": "api/bundle?vid=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03&download=true",
+    "makeofflineLink": "api/bundles?vids=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "removeofflineLink": "api/resources?package=LPCS-DEVICE-SUPPORT__3.19.00.12::com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::sysconfig__1.20.0::xdctools__3.51.03.28&path=Wireless connectivity/Embedded Software/SimpleLink CC2640R2 SDK/Examples/Development Tools/CC2640R2 LaunchPad/blestack/simple_peripheral&removeoffline=true",
+    "overviewLink": "c:/ti/simplelink_cc2640r2_sdk_5_30_00_03/examples/rtos/CC2640R2_LAUNCHXL/blestack/simple_peripheral/README.html",
+    "packageOrder": 431
+  },
+  {
+    "text": "simple_peripheral_oad_offchip",
+    "type": "folder",
+    "numChildren": 1,
+    "numChildrenLocal": 1,
+    "children": true,
+    "state": {
+      "opened": false
+    },
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "url": "/api/resources?path=Wireless%20connectivity/Embedded%20Software/SimpleLink%20CC2640R2%20SDK/Examples/Development%20Tools/CC2640R2%20LaunchPad/blestack&package=com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::xdctools__3.51.03.28::sysconfig__1.20.0::LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "downloadLink": "api/bundle?vid=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03&download=true",
+    "makeofflineLink": "api/bundles?vids=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "removeofflineLink": "api/resources?package=LPCS-DEVICE-SUPPORT__3.19.00.12::com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::sysconfig__1.20.0::xdctools__3.51.03.28&path=Wireless connectivity/Embedded Software/SimpleLink CC2640R2 SDK/Examples/Development Tools/CC2640R2 LaunchPad/blestack/simple_peripheral_oad_offchip&removeoffline=true",
+    "overviewLink": "c:/ti/simplelink_cc2640r2_sdk_5_30_00_03/examples/rtos/CC2640R2_LAUNCHXL/blestack/simple_peripheral_oad_offchip/README.html",
+    "packageOrder": 431
+  },
+  {
+    "text": "simple_peripheral_oad_onchip",
+    "type": "folder",
+    "numChildren": 1,
+    "numChildrenLocal": 1,
+    "children": true,
+    "state": {
+      "opened": false
+    },
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "url": "/api/resources?path=Wireless%20connectivity/Embedded%20Software/SimpleLink%20CC2640R2%20SDK/Examples/Development%20Tools/CC2640R2%20LaunchPad/blestack&package=com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::xdctools__3.51.03.28::sysconfig__1.20.0::LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "downloadLink": "api/bundle?vid=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03&download=true",
+    "makeofflineLink": "api/bundles?vids=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "removeofflineLink": "api/resources?package=LPCS-DEVICE-SUPPORT__3.19.00.12::com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::sysconfig__1.20.0::xdctools__3.51.03.28&path=Wireless connectivity/Embedded Software/SimpleLink CC2640R2 SDK/Examples/Development Tools/CC2640R2 LaunchPad/blestack/simple_peripheral_oad_onchip&removeoffline=true",
+    "overviewLink": "c:/ti/simplelink_cc2640r2_sdk_5_30_00_03/examples/rtos/CC2640R2_LAUNCHXL/blestack/simple_peripheral_oad_onchip/README.html",
+    "packageOrder": 431
+  },
+  {
+    "text": "simple_peripheral_secure_fw",
+    "type": "folder",
+    "numChildren": 1,
+    "numChildrenLocal": 1,
+    "children": true,
+    "state": {
+      "opened": false
+    },
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "url": "/api/resources?path=Wireless%20connectivity/Embedded%20Software/SimpleLink%20CC2640R2%20SDK/Examples/Development%20Tools/CC2640R2%20LaunchPad/blestack&package=com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::xdctools__3.51.03.28::sysconfig__1.20.0::LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "downloadLink": "api/bundle?vid=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03&download=true",
+    "makeofflineLink": "api/bundles?vids=com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "removeofflineLink": "api/resources?package=LPCS-DEVICE-SUPPORT__3.19.00.12::com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00::com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03::sysconfig__1.20.0::xdctools__3.51.03.28&path=Wireless connectivity/Embedded Software/SimpleLink CC2640R2 SDK/Examples/Development Tools/CC2640R2 LaunchPad/blestack/simple_peripheral_secure_fw&removeoffline=true",
+    "overviewLink": "c:/ti/simplelink_cc2640r2_sdk_5_30_00_03/examples/rtos/CC2640R2_LAUNCHXL/blestack/simple_peripheral_secure_fw/README.html",
+    "packageOrder": 431
+  }
+]

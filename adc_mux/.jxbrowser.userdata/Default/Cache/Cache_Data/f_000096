@@ -1,0 +1,1635 @@
+<!DOCTYPE html><html><head>
+    <meta charset="utf-8">
+    <meta name="author" content="Edvard S. Pettersen, Eirik Vikan, Fred Grønnerød">
+    <title>Sensor Controller Project from Scratch</title>
+<link rel="stylesheet" href="../../../web_support/strapdown/v/0.2/fonts/ubuntu-regular-woff.css"><link rel="stylesheet" href="../../../web_support/strapdown/v/0.2/fonts/glyphicons-halflings-regular.css"><link rel="stylesheet" href="../../../web_support/strapdown/v/0.2/themes/united2.min.css"><link rel="stylesheet" href="../../../web_support/strapdown/v/0.2/themes/bootstrap-responsive.min.css"><link rel="stylesheet" href="../../../web_support/strapdown/v/0.2/strapdown.css"><link rel="shortcut icon" type="image/x-icon" href="../../../.metadata/favicon.ico"></head>
+
+<!-- START PRE -->
+
+
+
+
+
+
+<!-- END PRE -->
+
+<body style=""><div class="container"><nav class="navbar navbar-default navbar-static-top"><div class="container-fluid"> <div class="navbar-header">  <div id="headline" class="navbar-brand">Sensor Controller Project from Scratch</div> </div> </div></nav><div class="container"><div class="row row-offcanvas row-offcanvas-left"><div class="col-xs-12 col-sm-9" id="content"><h1 class="body-heading" id="introduction">Introduction<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#introduction"></a></h1><p>This workshop will show you how to create and integrate a basic Sensor
+Controller ADC driver with a blank TI-RTOS project. The training is expected
+to take about 2 h to complete. There should be at least an beginner level of
+knowledge of the C programming language as well experience with embedded
+software development to be able to complete the tasks.</p>
+<p>The Sensor Controller ADC driver will measure an analog input voltage on one
+pin (DIO29) and set the green LED if the input ADC value is below a set
+threshold to indicate LOW input. If the ADC input value is above the set
+threshold it will notify the main application processor which then set the Red
+LED to indicate HIGH input. To vary the input voltage applied to the pin, an
+external voltage source can be connected to the analog input pin. In this
+workshop a jumper from the LaunchPad is used to short the analog input pin
+with adjacent pins (DIO28 and DIO30). There are two additional bonus tasks:
+one for <em>Bluetooth</em>® low energy and one for proprietary operation. Refer
+to the table below to find the required HW for each bonus task.</p>
+<div class="bs-callout bs-callout-info "><h4><span class="glyphicon glyphicon-info-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">Compatible Connected MCU LaunchPad kits
+</span></h4>
+<p>  This workshop can be completed with any one of the SimpleLink™
+  Wireless MCU with Sensor Controller devices described in the table below.
+  Install the required Associated SimpleLink Software Development Kit matching
+  your device. For more details on LaunchPads please visit the <a href="https://www.ti.com/tools-software/launchpads/launchpads.html">LaunchPad
+  overview page</a>.</p>
+</div>
+<h1 class="body-heading" id="abbreviations-terminology">Abbreviations / terminology<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#abbreviations-terminology"></a></h1><table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Abbreviation / terminology</th>
+<th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CCS</td>
+<td>Code Composer Studio</td>
+</tr>
+<tr>
+<td>SC</td>
+<td>Sensor Controller</td>
+</tr>
+<tr>
+<td>SCS</td>
+<td>Sensor Controller Studio</td>
+</tr>
+<tr>
+<td>AUX RAM</td>
+<td>Sensor Controller Memory</td>
+</tr>
+<tr>
+<td>RTC</td>
+<td>Real-Time Clock</td>
+</tr>
+<tr>
+<td>RTOS</td>
+<td>Real-Time Operating System</td>
+</tr>
+<tr>
+<td>TI-RTOS</td>
+<td>RTOS for TI microcontrollers</td>
+</tr>
+<tr>
+<td>SDK</td>
+<td>Software Development Kit</td>
+</tr>
+<tr>
+<td>S-W-MCU</td>
+<td>SimpleLink Wireless Micro Controller Unit</td>
+</tr>
+</tbody>
+</table>
+<h1 class="body-heading" id="prerequisites">Prerequisites<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#prerequisites"></a></h1><h2 class="body-heading" id="completed-material">Completed material<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#completed-material"></a></h2><ul>
+<li><a href="../sc_01_basic/sc_01_basic.html">Sensor Controller Basics - Getting Started</a></li>
+<li><a href="../../rtos/tirtos_basics/tirtos_basics.html">TI-RTOS Basics Lab 1</a></li>
+<li>For Bonus Task 1: <a href="../../blestack/ble_01_basic/ble_01_basic.html">Bluetooth Low Energy Fundamentals workshop</a></li>
+<li>For Bonus Task 2: <a href="../../prop_rf/prop_01_basic/prop_01_basic.html">Proprietary RF – Basic RX and TX</a></li>
+</ul>
+<h2 class="body-heading" id="software-for-desktop-development">Software for desktop development<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#software-for-desktop-development"></a></h2><p>In order to start with this exercise you will need to download the correct
+Software Development Kit (SDK) for your LaunchPad.
+This training covers the CC13x0, CC13xx, CC2640R2 and the CC26xx device families.</p>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Device</th>
+<th>SDK downloads</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CC13x0</td>
+<td><a href="https://www.ti.com/tool/SIMPLELINK-CC13X0-SDK">SimpleLink CC13x0 Software Development Kit</a></td>
+</tr>
+<tr>
+<td>CC2640R2</td>
+<td><a href="https://www.ti.com/tool/SIMPLELINK-CC2640R2-SDK">SimpleLink CC2640R2 Software Development Kit</a></td>
+</tr>
+<tr>
+<td>CC13xx/ CC26xx</td>
+<td><a href="https://www.ti.com/tool/SIMPLELINK-CC13XX-CC26XX-SDK">SimpleLink CC13xx/ CC26xx Software Development Kit</a></td>
+</tr>
+</tbody>
+</table>
+<p>Except for the relevant SDK for your choice of Launchpad, you also need the
+following software:</p>
+<p><strong>The following software applies for all device families:</strong></p>
+<ul>
+<li><p><a href="https://www.ti.com/tool/CCSTUDIO">Code Composer Studio</a> version 9.2 or later<br>
+Make sure that CCS is using the latest updates: <em>Help</em> → <em>Check for Updates</em></p>
+</li>
+<li><p><a href="https://www.ti.com/tool/SENSOR-CONTROLLER-STUDIO">Sensor Controller Studio</a> version 2.5.0 or later</p>
+</li>
+<li><p>For Bonus Task 1:</p>
+<ul>
+<li>Bluetooth mobile app:<ul>
+<li>Android: BLE Scanner by Bluepixel Technology LLP - available on the
+<a href="https://play.google.com/store/apps/details?id=com.macdom.ble.blescanner&amp;hl=en">Google Play store</a></li>
+<li>iOS: LightBlue Explorer - <em>Bluetooth</em> Low Energy by Punch Through -
+available on the
+<a href="https://itunes.apple.com/us/app/lightblue-explorer-bluetooth-low-energy/id557428110?mt=8">App Store</a></li>
+</ul>
+</li>
+</ul>
+<p><strong>OR</strong></p>
+<ul>
+<li>BTool (located in <em>tools/blestack</em> directory of the SimpleLink SDK installation)</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>For Bonus Task 2:<ul>
+<li><a href="https://www.ti.com/tool/SMARTRFTM-STUDIO">SmartRF Studio 7</a> version 2.13.0 or higher</li>
+</ul>
+</li>
+</ul>
+<h2 class="body-heading" id="hardware">Hardware<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#hardware"></a></h2><p>One LaunchPad connected with a USB micro cable:</p>
+<ul>
+<li><a href="https://www.ti.com/tool/LAUNCHXL-CC1310">LAUNCHXL-CC1310</a>,</li>
+<li><a href="https://www.ti.com/tool/LAUNCHXL-CC1312R1">LAUNCHXL-CC1312R1</a>,</li>
+<li><a href="https://www.ti.com/tool/LAUNCHXL-CC1350">LAUNCHXL-CC1350</a>,</li>
+<li><a href="https://www.ti.com/tool/LAUNCHXL-CC1352R1">LAUNCHXL-CC1352R1</a>,</li>
+<li><a href="https://www.ti.com/tool/LAUNCHXL-CC1352P">LAUNCHXL-CC1352P</a>,</li>
+<li><a href="https://www.ti.com/tool/LAUNCHXL-CC26X2R1">LAUNCHXL-CC26x2R1</a>,
+or</li>
+<li><p><a href="https://www.ti.com/tool/LAUNCHXL-CC2640R2">LAUNCHXL-CC2640R2</a>.</p>
+</li>
+<li><p>External variable voltage source or wire/jumper.</p>
+</li>
+</ul>
+<p>For bonus task1:</p>
+<ul>
+<li>One <a href="https://www.ti.com/tool/LAUNCHXL-CC2640R2">CC2640R2F LaunchPad</a></li>
+<li>Mobile device for testing or any other Bluetooth client applications as
+described in <a href="../../blestack/ble_01_basic/ble_01_basic.html">Bluetooth Low Energy Fundamentals workshop</a></li>
+</ul>
+<p>For bonus task2:</p>
+<ul>
+<li>Two CC13xx LaunchPads.</li>
+</ul>
+<h1 class="body-heading" id="getting-started-ndash-desktop">Getting started – Desktop<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#getting-started-ndash-desktop"></a></h1><h2 class="body-heading" id="install-the-software">Install the software<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#install-the-software"></a></h2><p>1 - Run the Associated SDK installer (<a href="#software-for-desktop-development">refer to table in
+introduction</a>) to the default directory:
+<code>C:\ti\</code></p>
+<p>2 - Install <a href="https://www.ti.com/tool/SENSOR-CONTROLLER-STUDIO">Sensor Controller Studio</a> and enable all patches. Patches
+can be enabled by first clicking <code>Updates</code> → <code>Check for Updates</code>. If any
+new patches are available, click <code>Updates</code> → <code>Manage Updates...</code> and
+apply all new patches. Note that the picture below is only used as an example.
+You may have a newer version, and there may be no patches available.
+</p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/scs_patch.png" alt="SCS Patch" class="img-responsive"></div><p></p>
+<h1 class="body-heading" id="getting-started-ndash-hardware">Getting started – Hardware<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#getting-started-ndash-hardware"></a></h1><p>Connect the LaunchPad to your computer via the micro-USB cable. <code>DIO29</code> on
+LaunchPad will be the ADC input. Connect the external variable voltage source
+to <code>DIO29</code>. As an alternative, a jumper or wire can be used. In this training
+<code>DIO29</code> is connected to <code>DIO28</code> or <code>DIO30</code> via a jumper, borrowed from <code>RXD&lt;&lt;</code>
+on the LaunchPad. <code>DIO28</code> will be set as digital output HIGH and <code>DIO30</code> as
+digital output LOW, which will be used to test and verify the ADC driver and
+main application. Note that any jumper that does not interfere with the
+application can be used. See picture below for reference.
+</p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/cc2640r2lp_small_edit.jpg" alt="CC2640R2F LaunchPad + Borrowed Jumper on `DIO29`-DIO28" class="img-responsive"></div><p></p>
+<h1 class="body-heading" id="task-1-ndash-import-build-and-download-clean-ti-rtos-project">Task 1 – Import, build and download clean TI-RTOS Project<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#task-1-ndash-import-build-and-download-clean-ti-rtos-project"></a></h1><p>In this task you will import a clean TI-RTOS Driver project called <code>Empty</code> and
+run the program on your LaunchPad. This project will be used as a clean
+template to integrate the SC driver. It is a minimal TI-RTOS example project
+that has one single task that toggles the red LED on the LaunchPad once every
+second.</p>
+<div class="panel-group">
+  <div class="panel panel-info">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a class="accordion-toggle collapsed" data-toggle="collapse" href="#expandable_-how-to-find-your-ccs-workspace-path-"><p> How to find your CCS workspace path</p>
+</a>
+      </h4>
+    </div>
+    <div id="expandable_-how-to-find-your-ccs-workspace-path-" class="panel-collapse collapse">
+      <div class="panel-body"><ol>
+<li>In CCS, go to <em>Project</em> &amp;rdash; <em>Properties</em>, or press <kbd>Alt+Enter</kbd>.</li>
+<li>Click on <code>Build</code> section to the left.</li>
+<li>Navigate to the <code>Variables</code> tab.</li>
+<li>Click on <code>Show system variables</code> checkbox at the bottom.</li>
+<li>Scroll down until you find the <code>WORKSPACE_LOC</code> variable, and note the value.
+This is your CCS workspace path for your project.</li>
+</ol>
+</div>
+    </div>
+  </div>
+</div><p>Do the following:</p>
+<ol>
+<li><p>Open CCS and press <em>Project</em> → <em>Import CCS Project</em>
+</p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/ccs_import_project.png" alt="Import CCS Project" class="img-responsive"></div><p></p>
+</li>
+<li><p>Import the <code>Empty</code> Project found in your SDK install path folder
+subdirectory as shown below:</p>
+<ul>
+<li><code>&lt;SDK&gt;\examples\rtos\CCxxxx_LAUNCHXL\drivers\empty</code></li>
+</ul>
+</li>
+</ol>
+<p></p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/ccs_import_project_path.png" alt="Import CCS Project Empty" class="img-responsive"></div><p></p>
+<ol>
+<li>Build and download the project to your LaunchPad by pressing <kbd>F11</kbd>.
+Then press <kbd>F8</kbd> to allow the program to run. The red LED should now
+toggle once every second.</li>
+</ol>
+<div class="bs-callout bs-callout-warning "><h4><span class="glyphicon glyphicon-exclamation-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">If you failed to download and run the "Empty" Project
+</span></h4>
+<ul>
+<li>Make sure you have connected the LaunchPad to your computer with a micro-USB
+Cable.</li>
+<li><p>Make sure that you have selected the correct project, e.g.</p>
+<ul>
+<li>called <code>empty_CC2640R2_LAUNCHXL_tirtos_ccs</code> for CC2640R2F.</li>
+<li>called <code>empty_CC1352R1_LAUNCHXL_tirtos_ccs</code> for CC1352R1.</li>
+<li>etc.</li>
+</ul>
+</li>
+<li><p>Unplug and plug in the USB cable again.</p>
+</li>
+<li>If this fails, you can try to run a "Erase Entire Flash" operation with
+<a href="https://www.ti.com/tool/UNIFLASH">UniFlash</a> and retry.</li>
+</ul>
+</div>
+<hr>
+<h1 class="body-heading" id="task-2-ndash-create-and-setup-scs-project">Task 2 – Create and setup SCS project<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#task-2-ndash-create-and-setup-scs-project"></a></h1><p>In this task we will create a new Sensor Controller project in SCS.</p>
+<div class="bs-callout bs-callout-info "><h4><span class="glyphicon glyphicon-info-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">SCS Documentation and Help
+</span></h4>
+<p>  At any time in SCS, <em>Help</em> – <em>Sensor Controller Studio Help</em> or press
+  <kbd>F1</kbd> for documentation and help.</p>
+</div>
+<h2 class="body-heading" id="create-scs-project">Create SCS project<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#create-scs-project"></a></h2><p>Do the following:</p>
+<ol>
+<li>Start SCS and open a new project, <em>File</em> → <em>New Project</em> or <kbd>Ctrl+N</kbd>.</li>
+<li>Set the <code>Project Name</code> to <code>ADC Level Trigger</code>.</li>
+<li>Set the <code>Operating system</code> to <code>TI-RTOS</code>.</li>
+<li>Set <code>Source code output directory</code> to <code>./</code>.</li>
+<li>Set <code>Chip name</code> corresponding to the device in use, e.g.:<ul>
+<li><code>CC2640R2F</code> if using CC2640R2F.</li>
+<li><code>CC1352R1F3</code> if using CC1352R1.</li>
+</ul>
+</li>
+<li>Set <code>Chip package</code> to <code>QFN48 7x7 RGZ</code>.</li>
+<li>Add one task by clicking <code>Add new</code>, name it <code>adc level trigger</code>.</li>
+<li>Save the project, <em>File</em> → <em>Save Project</em> or <kbd>Ctrl+S</kbd>, to the CCS
+project base folder in your CCS workspace. See
+<a href="#task-1-ndash-import-build-and-download-clean-ti-rtos-project">Task 1</a> on how
+to find your CCS workspace path.</li>
+</ol>
+<div class="bs-callout bs-callout-danger "><h4><span class="glyphicon glyphicon-exclamation-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">Correct project file save path
+</span></h4>
+<p>The path set in <code>Project file</code> <strong>must</strong> be the CCS project base folder located
+in the CCS workspace.</p>
+</div>
+<p>Refer to the screen shot below for the CC2640R2F LaunchPad.
+</p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/scs_project_settings.png" alt="SCS Project Settings" class="img-responsive"></div><p></p>
+<h2 class="body-heading" id="setup-sc-adc-driver">Setup SC ADC Driver<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#setup-sc-adc-driver"></a></h2><h3 class="body-heading" id="task-properties">Task Properties<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#task-properties"></a></h3><p>We need to specify the resources to be used. Go to <code>Task Properties</code> for the
+adc level trigger task, which can be accessed by clicking on the task name in
+the directory on the left hand side, above the <code>Initialization Code</code>. Select
+the task resources in the list below.</p>
+<ul>
+<li><strong>Analog Pins</strong><ul>
+<li>Create one pin and name it <code>ADC_INPUT</code>.</li>
+</ul>
+</li>
+<li><strong>Digital Output Pins</strong><ul>
+<li>Create three pins and name them <code>GREEN_LED</code>, <code>LOW</code>, and <code>HIGH</code>. You can add
+more pins by clicking <code>Add I/O usage</code> to the right of the task resource name.</li>
+</ul>
+</li>
+<li><strong>ADC</strong></li>
+<li><strong>System CPU Alert</strong></li>
+<li><strong>RTC-Based Execution Scheduling</strong></li>
+</ul>
+<div class="bs-callout bs-callout-info "><h4><span class="glyphicon glyphicon-info-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">Unnecessary pins
+</span></h4>
+<p>  If you are using an external variable voltage source connected to the ADC
+  input, then the two digital pins <code>LOW</code> and <code>HIGH</code> are not needed.</p>
+</div>
+<p>Make sure the <code>Task resource</code> settings match the screenshot below:
+</p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/scs_task_resources1.png" alt="Task Resource Settings" class="img-responsive"></div>
+<div class="modal-pop" style="cursor:zoom-in;"><img src="resources/scs_task_resources2.png" alt="Task Resource Settings" class="img-responsive"></div><p></p>
+<h3 class="body-heading" id="i-o-mapping">I/O mapping<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#i-o-mapping"></a></h3><p>Go to the <code>I/O Mapping</code> window and set the following pins to:</p>
+<ul>
+<li>Analog pin <code>ADC_INPUT</code> to <code>DIO29</code>.</li>
+<li>Digital pin <code>GREEN_LED</code> to <code>DIO7</code>.</li>
+<li>Digital pin <code>LOW</code> to <code>DIO28</code>.</li>
+<li>Digital pin <code>HIGH</code> to <code>DIO30</code>.</li>
+</ul>
+<p>The pin order can vary. In the I/O mapping view you can at the top select
+which board you are using. For instance, select the <code>CC1310 LaunchPad</code> if you
+are using a CC1310 LaunchPad. It should look something like the picture below
+if the I/O mapping is displayed in grid mode.</p>
+<p></p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/scs_io_setting.png" alt="Task I/O Settings" class="img-responsive"></div><p></p>
+<p>Or, if I/O mapping is displayed in list mode, it should look something like the
+picture below.</p>
+<p></p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/scs_io_setting2.png" alt="Task I/O Settings" class="img-responsive"></div><p></p>
+<hr>
+<h1 class="body-heading" id="task-3-ndash-create-sensor-controller-driver">Task 3 – Create Sensor Controller Driver<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#task-3-ndash-create-sensor-controller-driver"></a></h1><p>In this task you will implement and test the ADC driver in Sensor Controller
+Studio.</p>
+<h2 class="body-heading" id="specify-the-rtc-trigger-period">Specify the RTC Trigger Period<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#specify-the-rtc-trigger-period"></a></h2><p>The RTC period is specified by <code>Minimum task iteration interval</code> in
+preferences, <em>File</em> → <em>Preferences</em> or <kbd>Ctrl+P</kbd>. See picture below for
+reference. A RTC period of <code>250 milliseconds</code> is more than enough for this training.
+</p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/scs_preferences.png" alt="SCS Preferences" class="img-responsive"></div><p></p>
+<div class="bs-callout bs-callout-warning "><h4><span class="glyphicon glyphicon-exclamation-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">Task testing specific
+</span></h4>
+<p>  Specifying the RTC period in SCS <strong>only</strong> affects the task testing in SCS.
+  This does not set the RTC period when the SC driver is integrated into other
+  projects or applications, as this is done through the functions
+  <code>scifStartRtcTicks()</code> and then started with <code>scifStartRtcTicksNow()</code>.</p>
+</div>
+<h3 class="body-heading" id="rtc-scheduling">RTC scheduling<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#rtc-scheduling"></a></h3><p>The RTC period determines the execution interval of the SC task, if the SC task
+is scheduled by the RTC with the <code>fwScheduleTask()</code> function.
+<code>fwScheduleTask(N)</code> schedules the next task iteration in <code>N</code> RTC ticks. So for
+instance, let's say the RTC is operating at 200Hz. Scheduling the SC task with
+<code>fwScheduleTask(1);</code> would run the execution code at a 200Hz rate. With
+<code>fwScheduleTask(5);</code> the execution code would run at a (200/5)=40Hz rate, and
+so on.</p>
+<p>However, to minimize current consumption it is recommended to select the
+highest possible tickPeriod so that the argument in <code>fwScheduleTask()</code> can be
+as low as possible.</p>
+<div class="bs-callout bs-callout-default "><h4><span class="glyphicon glyphicon-question-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">Quiz
+</span></h4>
+<p>If a given SC task is scheduled with <code>fwScheduleTask(2);</code>, and the RTC period
+is set to 250 ms, what is the SC task period?</p>
+<div class="quiz-toolbar"><div>
+<input type="radio" id="q1.0" class="answer-wrong" name="quiz-1"><label for="q1.0" class="quiz-label quiz-float" data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; Not possible in this configuration&lt;/p&gt;
+">125 ms  </label>
+<input type="radio" id="q1.1" class="answer-wrong" name="quiz-1"><label for="q1.1" class="quiz-label quiz-float" data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; Would work with &lt;code&gt;fwScheduleTask(1);&lt;/code&gt;&lt;/p&gt;
+">250 ms  </label>
+<input type="radio" id="q1.2" class="answer-right" name="quiz-1"><label for="q1.2" class="quiz-label quiz-float" data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; 2 * 250 ms = 500 ms&lt;/p&gt;
+">500 ms  </label>
+<input type="radio" id="q1.3" class="answer-wrong" name="quiz-1"><label for="q1.3" class="quiz-label quiz-float" data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; Would work with &lt;code&gt;fwScheduleTask(4);&lt;/code&gt;&lt;/p&gt;
+">1000 ms </label>
+</div></div>
+<p>If a SC task period is 700 ms, and the RTC is set at 20 Hz, for which <code>N</code> is
+the SC task scheduled with the function <code>fwScheduleTask(N);</code>?</p>
+<div class="quiz-toolbar"><div>
+<input type="radio" id="q2.4" class="answer-wrong" name="quiz-2"><label for="q2.4" class="quiz-label quiz-float" data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; Task period would be 350 ms&lt;/p&gt;
+">N=7  </label>
+<input type="radio" id="q2.5" class="answer-wrong" name="quiz-2"><label for="q2.5" class="quiz-label quiz-float" data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; Task period would be 500 ms&lt;/p&gt;
+">N=10 </label>
+<input type="radio" id="q2.6" class="answer-right" name="quiz-2"><label for="q2.6" class="quiz-label quiz-float" data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; 20 Hz*14 = (1000/20) ms*14&lt;br&gt;= 50 ms*14 = 700 ms&lt;/p&gt;
+">N=14 </label>
+<input type="radio" id="q2.7" class="answer-wrong" name="quiz-2"><label for="q2.7" class="quiz-label quiz-float" data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; Task period would be 1000 ms&lt;/p&gt;
+">N=20 </label>
+</div></div>
+<p>If a SC task is scheduled with <code>fwScheduleTask(3);</code>, and the SC task period is
+1500 ms, what is the RTC period?</p>
+<div class="quiz-toolbar"><div>
+<input type="radio" id="q3.8" class="answer-right" name="quiz-3"><label for="q3.8" class="quiz-label quiz-float" data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; 1500 ms / 3 = 500 ms = 2 Hz&lt;/p&gt;
+">2 Hz </label>
+<input type="radio" id="q3.9" class="answer-wrong" name="quiz-3"><label for="q3.9" class="quiz-label quiz-float" data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; Task period would be 1000 ms&lt;/p&gt;
+">3 Hz </label>
+<input type="radio" id="q3.10" class="answer-wrong" name="quiz-3"><label for="q3.10" class="quiz-label quiz-float" data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; Task period would be 600 ms&lt;/p&gt;
+">5 Hz </label>
+<input type="radio" id="q3.11" class="answer-wrong" name="quiz-3"><label for="q3.11" class="quiz-label quiz-float" data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; Task period would be 500 ms&lt;/p&gt;
+">6 Hz </label>
+</div></div>
+</div>
+<h2 class="body-heading" id="adding-a-data-structure-member">Adding a data structure member<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#adding-a-data-structure-member"></a></h2><p>For a given SC Task, data structure members are used in a SC task to store
+variables in AUX RAM. This allows the SC Task to store data between task
+iterations, and to exchange data between the SC and the main application
+processor. There are four different types of data structures that represent
+different types of data, shown in the table below. All data structure types
+have the same format (16 bit word).</p>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<th>Data structure</th>
+<th>Intended use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cfg</td>
+<td>Configuration of SC Task</td>
+</tr>
+<tr>
+<td>input</td>
+<td>Input data for SC Task</td>
+</tr>
+<tr>
+<td>output</td>
+<td>Output data from SC Task</td>
+</tr>
+<tr>
+<td>state</td>
+<td>Internal state of SC Task</td>
+</tr>
+</tbody>
+</table>
+<p>To add a data structure member, locate the <code>Data structures</code> box to the right
+in either code window. This is the same for both <code>Initialization Code</code>,
+<code>Execution Code</code>, and <code>Termination Code</code>. Click <code>Add</code>. Select which
+<code>Data structure</code>, and set <code>Member name</code> and <code>Value</code>. Optionally, but not
+necessary, give a <code>Description</code> and choose a <code>Type</code>. See example picture for
+ADC output value below.
+</p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/scs_data_structure_member.png" alt="SCS Data Structure Member" class="img-responsive"></div><p></p>
+<div class="bs-callout bs-callout-default "><h4><span class="glyphicon glyphicon-question-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">Quiz
+</span></h4>
+<p>A SC Task is keeping track of how many ADC readings it has done between each
+task iteration. In which data structure should the variable be placed in?</p>
+<div class="quiz-toolbar"><div>
+<input type="radio" id="q4.12" class="answer-wrong" name="quiz-4"><label for="q4.12" class="quiz-label quiz-float">cfg</label>
+<input type="radio" id="q4.13" class="answer-wrong" name="quiz-4"><label for="q4.13" class="quiz-label quiz-float">input</label>
+<input type="radio" id="q4.14" class="answer-wrong" name="quiz-4"><label for="q4.14" class="quiz-label quiz-float">output</label>
+<input type="radio" id="q4.15" class="answer-right" name="quiz-4"><label for="q4.15" class="quiz-label quiz-float">state</label>
+</div></div>
+<p>A SC task is set to notify the main application when a given threshold is
+crossed, determined by the main application. In which data structure should the
+threshold be placed in?</p>
+<div class="quiz-toolbar"><div>
+<input type="radio" id="q5.16" class="answer-right" name="quiz-5"><label for="q5.16" class="quiz-label quiz-float">cfg</label>
+<input type="radio" id="q5.17" class="answer-wrong" name="quiz-5"><label for="q5.17" class="quiz-label quiz-float">input</label>
+<input type="radio" id="q5.18" class="answer-wrong" name="quiz-5"><label for="q5.18" class="quiz-label quiz-float">output</label>
+<input type="radio" id="q5.19" class="answer-wrong" name="quiz-5"><label for="q5.19" class="quiz-label quiz-float">state</label>
+</div></div>
+</div>
+<h2 class="body-heading" id="implement-the-sc-adc-driver">Implement the SC ADC driver<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#implement-the-sc-adc-driver"></a></h2><p>It is time to create the ADC driver. The Sensor Controller ADC driver shall
+measure the analog voltage on DIO28 periodically and set/clear the green LED
+when the measured input voltage is below/above a set threshold value. The SC
+will alert the main application when the threshold is crossed, and the main
+application (TI-RTOS application in this case) will set/clear the red LED if
+the ADC input value was above/below the threshold.</p>
+<p>The threshold is specified by the main application, stored in a cfg structure
+data member. Being under/above the threshold sets the state to be either
+low/high. The state is stored in a state structure member. The analog sensor
+value is sampled by the ADC and stored in an output structure data member.</p>
+<div class="bs-callout bs-callout-warning "><h4><span class="glyphicon glyphicon-exclamation-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">Create data structure members
+</span></h4>
+<p>You need to create three data structure members: <code>threshold</code> in cfg structure,
+<code>adcValue</code> in output structure, and <code>high</code> in state structure. See
+<a href="#adding-a-data-structure-member">Task 3</a> on how to create data structure
+members.</p>
+</div>
+<h3 class="body-heading" id="initialization-code">Initialization code<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#initialization-code"></a></h3><p>The initialization code will run once when the task is started by the TI-RTOS
+application. The initialization code should set the digital values for the
+<code>HIGH</code> and <code>LOW</code> pins, select the sampling pin for the ADC, and schedule the
+first execution of the execution code to the next RTC tick. See
+<a href="#specifying-the-rtc-period">Task 2</a> for a more detailed explanation on how RTC
+scheduling and how <code>fwScheduleTask()</code> works.</p>
+<p>The initialization code is presented below. Copy and paste the code snippet
+into the <code>Initialization Code</code> in SCS.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_1')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_1" class="lang-c hljs cpp"><span class="hljs-comment">// Set `DIO28` High</span>
+gpioSetOutput(AUXIO_O_HIGH);
+
+<span class="hljs-comment">// Set `DIO30` Low</span>
+gpioClearOutput(AUXIO_O_LOW);
+
+<span class="hljs-comment">// Select ADC input</span>
+adcSelectGpioInput(AUXIO_A_ADC_INPUT);
+
+<span class="hljs-comment">// Schedule the first execution</span>
+fwScheduleTask(<span class="hljs-number">1</span>);
+</code></pre><span class="code-title"><p>Initialization code</p>
+</span></div></div>
+<h3 class="body-heading" id="execution-code">Execution code<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#execution-code"></a></h3><p>The execution code should enable the ADC, sample and store the ADC value,
+compare the converted ADC input value with the threshold, and alert the main
+application if a transition happens. As explained in
+<a href="#specifying-the-rtc-period">Task 3</a>, it is scheduled through the
+<code>fwScheduleTask()</code> function every RTC tick.</p>
+<p>Copy and paste the code snippet below into the <code>Execution Code</code> in SCS.
+<strong>Note</strong>: There is an intentional error in the code, see next section.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_2')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_2" class="lang-c hljs cpp"><span class="hljs-comment">// Enable the ADC</span>
+adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_2P7_US, ADC_TRIGGER_MANUAL);
+
+<span class="hljs-comment">// Sample the analog sensor</span>
+adcGenManualTrigger();
+adcReadFifo(output.adcValue);
+
+<span class="hljs-comment">// Disable the ADC</span>
+adcDisable();
+
+U16 oldState = state.high;
+<span class="hljs-keyword">if</span> (input.adcValue &gt; cfg.threshold) {
+    state.high = <span class="hljs-number">1</span>; <span class="hljs-comment">// High input - &gt; High state</span>
+    gpioClearOutput(AUXIO_O_GREEN_LED);
+} <span class="hljs-keyword">else</span> {
+    state.high = <span class="hljs-number">0</span>; <span class="hljs-comment">// Low input -&gt; Low state</span>
+    gpioSetOutput(AUXIO_O_GREEN_LED);
+}
+
+<span class="hljs-keyword">if</span> (oldState != state.high) {
+    <span class="hljs-comment">// Signal the application processor.</span>
+    fwGenAlertInterrupt();
+}
+
+<span class="hljs-comment">// Schedule the next execution</span>
+fwScheduleTask(<span class="hljs-number">1</span>);
+</code></pre><span class="code-title"><p>adc level trigger Execution Code</p>
+</span></div></div>
+<h3 class="body-heading" id="termination-code">Termination code<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#termination-code"></a></h3><p>The termination code will run once when the SC task is either terminated by the
+main application, or executed without scheduling. The main purpose for the
+termination code is to do necessary cleanup.</p>
+<p>For this task, there is no necessary cleanup, and the termination code is
+therefore left empty.</p>
+<h2 class="body-heading" id="compilation-error">Compilation Error<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#compilation-error"></a></h2><p>With the SC driver implemented, it is time for test. However, nobody makes
+perfect code. In the execution code above there is a subtle syntax error.
+At first glance it's not obvious where the error is, but SCS can help. Go to
+the <code>Task Testing</code> window, <em>View</em> → <em>Task Testing</em> or <kbd>Ctrl+T</kbd>.
+Select the <code>ADC Level Trigger</code> project if this is not already set.</p>
+<p>You should now be present with an event log, such as the picture below. It
+shows the different stages of validating and compiling the project. This
+event log is only shown in <span class="hinted" data-placement="auto top" data-toggle="tooltip" data-html="true" data-original-title="&lt;p&gt;And also in the&lt;br&gt;&lt;code&gt;Code Generation&lt;/code&gt;
+window&lt;/p&gt;
+">this window</span> when something went wrong during validation and compiling. As we see at
+the bottom of the log, during compilation of the execution code, it encountered
+a syntax error at line 12. Note that the line number can vary. See picture
+below for reference.
+</p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/scs_event_error.png" alt="SCS Event Error" class="img-responsive"></div><p></p>
+<p>So, go back to the execution code window and find the specified line number. If
+you are observant, you should see that the code line</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_3')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_3" class="lang-c hljs cpp"><span class="hljs-keyword">if</span> (input.adcValue &gt; cfg.threshold) {
+</code></pre></div></div>
+<p>is accessing the <code>adcValue</code> from the <strong>input</strong> structure, and not the
+<strong>output</strong> structure. A subtle bug indeed. Fix the line by changing input to
+output.</p>
+<p>Now, when going back to the <code>Task Testing</code> window, the event log should no
+longer be there and you should be presented with the actual <code>Task Testing</code>
+screen.</p>
+<div class="bs-callout bs-callout-danger "><h4><span class="glyphicon glyphicon-exclamation-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">More code errors?
+</span></h4>
+<p>  If you got more syntax errors present, then you might have forgotten to
+  create or name the pins correctly in the <code>Task Properties</code> window, or to
+  create or name the data structure members in the code windows. Go back and
+  double check.</p>
+</div>
+<h2 class="body-heading" id="sensor-controller-task-testing">Sensor Controller Task Testing<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#sensor-controller-task-testing"></a></h2><p>Now we test the task to verify it works as intended. Do the following:</p>
+<ol>
+<li>Go to the <code>Task Testing</code> window if not already there, <em>View</em> → <em>Task Testing</em>
+or <kbd>Ctrl+T</kbd>.</li>
+<li>Select the <code>ADC Level Trigger</code> project if not already set.</li>
+<li>Select the <code>Use simplified workflow</code>. See picture below.
+<div class="modal-pop" style="cursor:zoom-in;"><img src="resources/adc_task_testing.png" alt="ADC Task Testing" class="img-responsive"></div></li>
+<li>Add <code>Run Execution Code</code> to the <code>Task iteration action sequence</code>.
+<div class="modal-pop" style="cursor:zoom-in;"><img src="resources/adc_task_iteration.png" alt="ADC Task Iteration" class="img-responsive"></div></li>
+<li>Click on <code>Connect</code> <kbd>F12</kbd>. You should now be in the graph tab.
+If this fails, make sure your LaunchPad is not used by Code Composer Studio.
+<div class="modal-pop" style="cursor:zoom-in;"><img src="resources/scs_connect.png" alt="SCS Connect" class="img-responsive"></div></li>
+<li>On the right side of the graph window you should find all data structure
+members created. If there are no variables you might have forgotten to create
+them. Configure the <code>cfg.threshold</code> value by double clicking the variable, set
+it to 400, and press <kbd>Enter</kbd>.
+<div class="modal-pop" style="cursor:zoom-in;"><img src="resources/scs_member_struct_vars.png" alt="SCS Member Struct Vars" class="img-responsive"></div></li>
+<li>Then, click <code>Run Task Iterations Continuously</code> <kbd>F5</kbd>.
+<div class="modal-pop" style="cursor:zoom-in;"><img src="resources/scs_run_cont.png" alt="SCS Run cont" class="img-responsive"></div></li>
+<li>Select <code>output.adcValue</code> in the member struct box. A graph of the variable
+should appear.</li>
+<li>Place the wire or jumper between <code>DIO29</code> and <code>DIO30</code>. The <code>output.adcValue</code>
+should be <span class="hinted" data-placement="auto top" data-toggle="tooltip" data-html="true" data-original-title="&lt;p&gt;above 3000&lt;/p&gt;
+">high</span> and <code>state.high</code> should be 1. Now move the wire
+or jumper between <code>DIO28</code> and <code>DIO29</code>. The <code>output.adcValue</code> should drop down
+to about 0 and <code>state.high</code> should be 0. The green LED should also turn on. See
+the picture below on what you should observe.
+<div class="modal-pop" style="cursor:zoom-in;"><img src="resources/task_test_graph.png" alt="Task Test Graph Coolio" class="img-responsive"></div></li>
+<li>When you are content that the driver is working, click <code>Disconnect</code>
+<kbd>F11</kbd>. <div class="modal-pop" style="cursor:zoom-in;"><img src="resources/scs_disconnect.png" alt="SCS Disconnect" class="img-responsive"></div></li>
+</ol>
+<h2 class="body-heading" id="generate-sensor-controller-driver">Generate Sensor Controller Driver<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#generate-sensor-controller-driver"></a></h2><p>Now that everything is working well, the next step is to generate the driver
+from the SCS project.</p>
+<p>Do the following:</p>
+<ol>
+<li>Go to the <code>Code Generator</code> window, <em>View</em> → <em>Code Generator</em> or
+<kbd>Ctrl+G</kbd>.</li>
+<li>Select ADC Level Trigger as <code>Current project</code>.</li>
+<li>Either select <code>Output automatically</code> to auto generate code each time
+visiting the window, or click <code>Generate driver source code</code>.</li>
+<li>Click <code>View output directory</code> and <strong>double check</strong> it is the project base
+folder of the <code>Empty</code> Project. The files should also be visible in the project
+explorer in CCS, shown in the picture below. Try refreshing the project
+<kbd>F5</kbd> if they do not show up.
+<div class="modal-pop" style="cursor:zoom-in;"><img src="resources/ccs_with_scif.png" alt="CCS with generated scif source files" class="img-responsive"></div></li>
+<li>Build the project and see that it compiles without errors.</li>
+</ol>
+<div class="bs-callout bs-callout-danger "><h4><span class="glyphicon glyphicon-exclamation-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">SCIF files do not appear in CCS project folder?
+</span></h4>
+<p>If no files are generated during code generation, then the output directory is
+most likely wrong. Go back to project settings and make sure <code>Project file</code> and
+<code>Source code output directory</code> path are correct. See
+<a href="#create-scs-project">Task 2</a> for help.</p>
+</div>
+<hr>
+<h1 class="body-heading" id="task-4-ndash-implement-ti-rtos-application">Task 4 – Implement TI-RTOS Application<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#task-4-ndash-implement-ti-rtos-application"></a></h1><p>Now we will write the TI-RTOS application and integrate the sensor controller
+driver you created in
+<a href="#task-3-ndash-create-sensor-controller-adc-driver">Task 3</a>. This task will
+show you how to communicate with the SC, and the different ways to process the
+SC data, with focus on execution context.</p>
+<p>Code documentation regarding the SC can be found at</p>
+<ul>
+<li><code>scif_framework.h</code> file from code generation.</li>
+<li>SC Interface documentation (doxygen), found on the start page.
+<div class="modal-pop" style="cursor:zoom-in;"><img src="resources/scs_doxygen.png" alt="SCS Doxygen" class="img-responsive"></div></li>
+<li><code>scif_how_to_use.html</code> file from code generation. This file contains code snippets for most of the topics below with the tasks and variables names used in the SC code.   </li>
+</ul>
+<h3 class="body-heading" id="refactoring-and-cleanup-ti-rtos-empty-project">Refactoring and Cleanup TI-RTOS "empty" Project<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#refactoring-and-cleanup-ti-rtos-empty-project"></a></h3><p>Rename the single thread defined in <code>main_tirtos.c</code> called <code>mainThread</code> to a
+more descriptive and relevant name for this project. Refactor the function to
+<code>tirtosScThread</code>, by right click function and <em>Refactor</em> → <em>Rename...</em>, or click
+function and <kbd>Alt+Shift+R</kbd>.</p>
+<div class="bs-callout bs-callout-warning "><h4><span class="glyphicon glyphicon-exclamation-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">TI-RTOS Task and POSIX Thread
+</span></h4>
+<p>The TI-RTOS example use POSIX threads instead of TI-RTOS tasks, but the POSIX
+thread has an underlying Task object and has support for many of the TI-RTOS
+kernel task APIs. This workshop will refer to the two terms, thread and task,
+Interchangeably. To summarize, a POSIX thread in TI-RTOS is practically a
+TI-RTOS task and a sensor controller task is not related to this as it
+describes a small program running on the sensor controller.
+<a href="https://e2e.ti.com/support/processors/f/791/t/947274">Click here for more info about use of POSIX Thread in TI-RTOS</a></p>
+</div>
+<p>Also, replace the <span class="hinted" data-placement="auto top" data-toggle="tooltip" data-html="true" data-original-title="&lt;p&gt;Refering to the&lt;/br&gt;&lt;code&gt;while(1)&amp;#123;&amp;#125;&lt;/code&gt; loop in empty.c&lt;/p&gt;
+">main loop</span> in the newly renamed <code>tirtosScThread()</code> task with an empty loop <code>while (1) {}</code>.</p>
+<h3 class="body-heading" id="i-o-configuration">I/O configuration<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#i-o-configuration"></a></h3><p>The green LED is controlled by the SC. Because of this the TI-RTOS application
+GPIO Driver must not initialize and open the green LED pin. To fix this, go to
+CCS and comment out the <code>GPIOCCXXXX_DIO_07</code> line in <code>gpioPinConfigs</code>,
+<code>CCxxx0_LAUNCHXL_PIN_GLED</code> line in <code>BoardGpioInitTable</code> and
+<code>CCxxx0_LAUNCHXL_GPIO_LED_GREEN</code> in <code>CCxxx0_LAUNCHXL_GPIOName</code>. See code
+snippets below for reference (do not copy and paste, but comment out lines with
+<code>//</code> or <kbd>Ctrl+Shift+/</kbd>).</p>
+<p>For example, if you have a CC2640R2 it looks like this, but it is the same
+steps for every LaunchPad.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_4')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_4" class="lang-c hljs cpp">GPIO_PinConfig gpioPinConfigs[] = {
+    <span class="hljs-comment">/* Input pins */</span>
+    GPIOCC26XX_DIO_13 | ...,  <span class="hljs-comment">/* Button 0 */</span>
+    GPIOCC26XX_DIO_14 | ...,  <span class="hljs-comment">/* Button 1 */</span>
+
+    <span class="hljs-comment">/* Output pins */</span>
+<span class="hljs-comment">//  GPIOCC26XX_DIO_07 | ....,  /* Green LED */</span>
+    GPIOCC26XX_DIO_06 | ....,  <span class="hljs-comment">/* Red LED */</span>
+};
+</code></pre><span class="code-title"><p><em>gpioPinConfigs</em> in <code>CC2640R2_LAUNCHXL.c</code></p>
+</span></div></div>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_5')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_5" class="lang-c hljs cpp"><span class="hljs-keyword">const</span> PIN_Config BoardGpioInitTable[] = {
+    CC2640R2_LAUNCHXL_PIN_RLED | PIN_GPIO_OUTPUT_EN | ...
+<span class="hljs-comment">//  CC2640R2_LAUNCHXL_PIN_GLED | PIN_GPIO_OUTPUT_EN | ...</span>
+    ....
+    PIN_TERMINATE
+};
+</code></pre><span class="code-title"><p><em>BoardGpioInitTable</em> in <code>CC2640R2_LAUNCHXL.c</code></p>
+</span></div></div>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_6')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_6" class="lang-c hljs cpp"><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">enum</span> CC2640R2_LAUNCHXL_GPIOName {
+    CC2640R2_LAUNCHXL_GPIO_S1 = <span class="hljs-number">0</span>,
+    CC2640R2_LAUNCHXL_GPIO_S2,
+<span class="hljs-comment">//  CC2640R2_LAUNCHXL_GPIO_LED_GREEN,</span>
+    CC2640R2_LAUNCHXL_GPIO_LED_RED,
+    CC2640R2_LAUNCHXL_GPIOCOUNT
+} CC2640R2_LAUNCHXL_GPIOName;
+</code></pre><span class="code-title"><p><em>CC2640R2_LAUNCHXL_GPIOName</em> in <code>CC2640R2_LAUNCHXL.h</code></p>
+</span></div></div>
+<h2 class="body-heading" id="sc-driver-interaction-and-processing">SC driver interaction and processing<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#sc-driver-interaction-and-processing"></a></h2><p>There are two aspects with SC interaction and processing that needs to be
+addressed before implementation: how the SC and main application interact,
+and how to exchange data.</p>
+<h3 class="body-heading" id="sc-interaction">SC interaction<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#sc-interaction"></a></h3><p>SC interaction is exclusively intended to be done through the two interrupt
+callbacks <code>Control READY</code> and <code>Task ALERT</code>. This way the SC can signal the main
+application at appropriate times.</p>
+<p>The <code>Control READY</code> interrupt is signaled when one of the non-blocking task
+control functions, such as <code>scifStartTasksNbl()</code>, has executed successfully on
+the SC. However, the interrupt is encapsulated in the <code>scifWaitOnNbl()</code>
+function, and is in most cases, such as this training, not necessary to handle.</p>
+<p>The <code>Task ALERT</code> interrupt is signaled when a SC task calls one of the
+functions <code>fwGenAlertInterrupt()</code>, <code>fwGenQuickAlertInterrupt()</code> or
+<code>fwSwitchOutputBuffer()</code>, as seen done in <a href="#implement-the-adc-driver">Task 3</a>.
+This interrupt is used to signal the main application when some type of
+computation is finished, or some event has happened. This is what is
+interesting for us, as this allows us to free the main application from
+waiting for the SC driver to finish or some certain SC event to happen.</p>
+<p>In the SC initialization part for this project, we handle both signals by
+registering a callback for each interrupt. This is only done for the sake of
+completeness. As only the <code>Task ALERT</code> signal is of importance for this
+project, we are only processing that signal.</p>
+<div class="bs-callout bs-callout-default "><h4><span class="glyphicon glyphicon-question-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">Quiz
+</span></h4>
+<p>Which interrupt signal(s) is associated with the task control function
+<code>scifStopTasksNbl()</code>, issued from the main application?</p>
+<div class="quiz-toolbar"><div>
+<input type="radio" id="q6.20" class="answer-wrong" name="quiz-6"><label for="q6.20" class="quiz-label quiz-float">None</label>
+<input type="radio" id="q6.21" class="answer-wrong" name="quiz-6"><label for="q6.21" class="quiz-label quiz-float" data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; Only SC tasks can generate this signal&lt;/p&gt;
+">Task ALERT </label>
+<input type="radio" id="q6.22" class="answer-right" name="quiz-6"><label for="q6.22" class="quiz-label quiz-float">Control READY</label>
+<input type="radio" id="q6.23" class="answer-wrong" name="quiz-6"><label for="q6.23" class="quiz-label quiz-float">Both</label>
+</div></div>
+<p>Which interrupt signal(s) can a SC Task explicitly generate through procedure
+calls?</p>
+<div class="quiz-toolbar"><div>
+<input type="radio" id="q7.24" class="answer-wrong" name="quiz-7"><label for="q7.24" class="quiz-label quiz-float">None</label>
+<input type="radio" id="q7.25" class="answer-right" name="quiz-7"><label for="q7.25" class="quiz-label quiz-float">Task ALERT</label>
+<input type="radio" id="q7.26" class="answer-wrong" name="quiz-7"><label for="q7.26" class="quiz-label quiz-float" data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; This is handled by the SC&lt;/p&gt;
+">Control READY </label>
+<input type="radio" id="q7.27" class="answer-wrong" name="quiz-7"><label for="q7.27" class="quiz-label quiz-float">Both</label>
+</div></div>
+</div>
+<h3 class="body-heading" id="sc-task-data-structure">SC task data structure<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#sc-task-data-structure"></a></h3><p>See <a href="#adding-a-data-structure-member">Task 3</a> for an overview of the data
+structures.</p>
+<p>Accessing data stored in the SC AUX RAM can be done in two ways: either direct
+or indirect access. Which type of access is determined by the type of data
+structures used: single or multi-buffered. The only requirement is for
+multi-buffered data, where only indirect access can be used. Single-buffered
+can use either way. However, direct access is preferred as this is much faster.</p>
+<p>Direct access in done through the variable <code>scifTaskData</code> structure, defined in
+<code>scif.h</code>. The hierarchy in which the data structure members are stored are as
+such: <code>scifTaskData</code> as base, next is the name of the SC task in camelCase,
+then the type of the data structure, and lastly the name of the data structure
+member.</p>
+<p>For instance, the data structure member <code>adcValue</code>, located in the <code>output</code>
+structure, defined in the SC task <code>ADC</code>, is accessed as such:
+<code>scifTaskData.adcLevelTrigger.output.adcValue</code>. For a complete view of the
+<code>scifTaskData</code> structure, see the <code>scif.h</code> file.</p>
+<p>The hierarchy and structure of the <code>scifTaskData</code> struct is highly dependent on
+the SC task implementation, and will vary from SC driver to SC driver.</p>
+<p>Indirect access can be done through the <code>Task data structure access</code> functions
+defined in the <code>scif_framework.h</code> file, mainly by the <code>scifGetTaskStruct</code>
+function. By specifying the SC Task ID and the structure type, the relevant
+structure pointer is returned. As mentioned, this must be used to access
+multi-buffered data structures.</p>
+<div class="bs-callout bs-callout-default "><h4><span class="glyphicon glyphicon-question-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">Quiz
+</span></h4>
+<p>A data structure member is defined in a SC Task, and is called <code>counter</code>. It is
+stored in the <code>output</code> structure. The SC Task is called <code>Pin Counter</code>. What is
+the resulting direct access code?</p>
+<div class="quiz-toolbar"><div>
+<input type="radio" id="q8.28" class="answer-wrong" name="quiz-8"><label for="q8.28" class="quiz-label ">scifTaskData.output.pinCounter.counter</label>
+<input type="radio" id="q8.29" class="answer-wrong" name="quiz-8"><label for="q8.29" class="quiz-label ">scifTaskData.pinCounter.counter.output</label>
+<input type="radio" id="q8.30" class="answer-right" name="quiz-8"><label for="q8.30" class="quiz-label ">scifTaskData.pinCounter.output.counter</label>
+</div></div>
+</div>
+<h2 class="body-heading" id="initialize-and-setup-of-sc-driver">Initialize and setup of SC driver<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#initialize-and-setup-of-sc-driver"></a></h2><p>To initialize and setup the SC driver a couple of necessary steps need to be
+done. First, add</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_7')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_7" class="lang-c hljs cpp"><span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> "scif.h"</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> BV(x)    (1 &lt;&lt; (x))</span>
+</code></pre><span class="code-title"><p>Scif header and macro</p>
+</span></div></div>
+<p>at the top of the <code>empty.c</code> file. The <code>scif.h</code> file is the main interface to
+the SC driver compiled and generated from the SCS project. <code>BV()</code> is a bit
+vector macro, which will be useful soon.</p>
+<h3 class="body-heading" id="create-callback-functions">Create callback functions<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#create-callback-functions"></a></h3><p>The initialization code for the SC driver uses two callback functions to handle
+the two interrupt signals <code>Task ALERT</code> and <code>Control READY</code>. Therefore, copy and
+paste the code snippet above the <code>tirtosScThread()</code>, shown below.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_8')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_8" class="lang-c hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">scCtrlReadyCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+
+} <span class="hljs-comment">// scCtrlReadyCallback</span>
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">scTaskAlertCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+
+} <span class="hljs-comment">// scTaskAlertCallback</span>
+</code></pre><span class="code-title"><p>SC callback functions</p>
+</span></div></div>
+<h3 class="body-heading" id="initialize-driver-and-register-callbacks">Initialize driver and register callbacks<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#initialize-driver-and-register-callbacks"></a></h3><p>Then, in the <code>tirtosScThread()</code>, before the main loop <code>while(1)</code>, copy and
+paste the following code snippet. It is important to note that the
+initialization code should preferrably be run in a TI-RTOS context, such as a
+task context.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_9')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_9" class="lang-c hljs cpp"><span class="hljs-comment">// Initialize the Sensor Controller</span>
+scifOsalInit();
+scifOsalRegisterCtrlReadyCallback(scCtrlReadyCallback);
+scifOsalRegisterTaskAlertCallback(scTaskAlertCallback);
+scifInit(&amp;scifDriverSetup);
+
+<span class="hljs-comment">// Set the Sensor Controller task tick interval to 1 second</span>
+<span class="hljs-keyword">uint32_t</span> rtc_Hz = <span class="hljs-number">1</span>;  <span class="hljs-comment">// 1Hz RTC</span>
+scifStartRtcTicksNow(<span class="hljs-number">0x00010000</span> / rtc_Hz);
+
+<span class="hljs-comment">// Configure Sensor Controller tasks</span>
+scifTaskData.adcLevelTrigger.cfg.threshold = <span class="hljs-number">600</span>;
+
+<span class="hljs-comment">// Start Sensor Controller task</span>
+scifStartTasksNbl(BV(SCIF_ADC_LEVEL_TRIGGER_TASK_ID));
+</code></pre><span class="code-title"><p>SC Driver Initialization</p>
+</span></div></div>
+<p>So what does the code do? Let's study each code line.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_10')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_10" class="lang-c hljs cpp"><span class="hljs-comment">// Initialize the Sensor Controller</span>
+scifOsalInit();
+scifOsalRegisterCtrlReadyCallback(scCtrlReadyCallback);
+scifOsalRegisterTaskAlertCallback(scTaskAlertCallback);
+scifInit(&amp;scifDriverSetup);
+</code></pre><span class="code-title"><p>Driver specific initialization</p>
+</span></div></div>
+<p>The first line simply initializes the
+<span class="hinted" data-placement="auto top" data-toggle="tooltip" data-html="true" data-original-title="&lt;p&gt;Operating System Abstraction Layer&lt;/p&gt;
+">OSAL</span> of the <code>scif</code> framework. The next
+two lines registers two callbacks for the two interrupt signals <code>Control READY</code>
+and <code>Task ALERT</code> from the SC. This is how the main application can communicate
+and work together with the SC, explained in the <a href="#sc-interaction">Section</a>
+above. The fourth line initializes the SC with our SC task driver created in
+<a href="#task-3-ndash-create-sensor-controller-adc-driver">Task 3</a>.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_11')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_11" class="lang-c hljs cpp"><span class="hljs-comment">// Set the Sensor Controller task tick interval to 1 second</span>
+<span class="hljs-keyword">uint32_t</span> rtc_Hz = <span class="hljs-number">1</span>;  <span class="hljs-comment">// 1Hz RTC</span>
+scifStartRtcTicksNow(<span class="hljs-number">0x00010000</span> / rtc_Hz);
+</code></pre><span class="code-title"><p>RTC initialization</p>
+</span></div></div>
+<p>The next line configures the RTC tick interval. This is more thoroughly
+explained in <a href="#specifying-the-rtc-period">Task 3</a>.</p>
+<p>For this training we are setting the RTC interval to 1 second. However, feel
+free to play around with the RTC interval by modifying the <code>rtc_Hz</code> variable or
+the function argument directly. The function <code>scifStartRtcTicksNow()</code> takes a
+32-bit value as an argument. The argument represents a tick interval, where
+bits 31:16 are the seconds, and bits 15:0 are the 1/65536 of a second.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_12')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_12" class="lang-c hljs cpp"><span class="hljs-comment">// Configure Sensor Controller tasks</span>
+scifTaskData.adcLevelTrigger.cfg.threshold = <span class="hljs-number">600</span>;
+
+<span class="hljs-comment">// Start Sensor Controller task</span>
+scifStartTasksNbl(BV(SCIF_ADC_LEVEL_TRIGGER_TASK_ID));
+</code></pre><span class="code-title"><p>Task initialization</p>
+</span></div></div>
+<p>Next line is the SC task configuration. This part is optional, and can be done
+at multiple appropriate times depending on the SC task. We configure the
+<code>cfg.threshold</code> variable, just as we did in
+<a href="#sensor-controller-task-testing">Task 3</a>. The SC task configuration can
+practically be done at any time in the main application, but is highly
+recommended to be done at appropriate times, such as during initialization or
+before SC task execution.</p>
+<p>The last line starts the actual execution of the SC task. All <code>scif</code> functions
+handling task IDs, such as <code>scifStartTasksNbl()</code>, takes a bit vector as an
+argument. The macro <code>BV()</code> performs this transformation, and this is why it was
+included. The SC Task IDs can be found in the generated <code>scif.h</code> file.</p>
+<div class="bs-callout bs-callout-default "><h4><span class="glyphicon glyphicon-question-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">Quiz
+</span></h4>
+<p>Which statement(s) are true?</p>
+<div class="quiz-toolbar"><div>
+<input type="checkbox" id="q9.31" class="answer-wrong" name="quiz-9" style="display:none;"><label for="q9.31" class="quiz-label " data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; This&lt;/p&gt;
+">One can only set a cfg data member before the SC task is started. </label>
+<input type="checkbox" id="q9.32" class="answer-wrong" name="quiz-9" style="display:none;"><label for="q9.32" class="quiz-label ">One must register callbacks for both the Control READY and Task ALERT</label>
+<input type="checkbox" id="q9.33" class="answer-right" name="quiz-9" style="display:none;"><label for="q9.33" class="quiz-label ">RTC does not always have to be configured with the scifStartRtcTickNow()</label>
+<input type="checkbox" id="q9.34" class="answer-right" name="quiz-9" style="display:none;"><label for="q9.34" class="quiz-label ">Multiple SC tasks can be active at the same time, but the tasks only run one</label>
+<input type="checkbox" id="q9.35" class="answer-right" name="quiz-9" style="display:none;"><label for="q9.35" class="quiz-label ">Multiple SC tasks can be active at the same time, but the tasks only run one</label>
+<input type="checkbox" id="q9.36" class="answer-right" name="quiz-9" style="display:none;"><label for="q9.36" class="quiz-label ">Multiple SC tasks can be active at the same time, but the tasks only run one</label>
+</div></div>
+</div>
+<h2 class="body-heading" id="implement-sc-driver-application-processing">Implement SC driver application processing<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#implement-sc-driver-application-processing"></a></h2><p>Now we can begin implementing the SC processing. We will do this in increments,
+implementing it in different application contexts and methods, and at the end
+discuss  the pros and cons for each solution.</p>
+<p>All three solutions are interrupt based, where the idea is the same:</p>
+<ol>
+<li>Wait for a <code>Task ALERT</code> signal.</li>
+<li>Clear the interrupt source.</li>
+<li>Process the SC task.</li>
+<li>Acknowledge the ALERT event to the scif framework.</li>
+</ol>
+<p>The actual task processing shall be encapsulated in a function called
+<code>processTaskAlert()</code>. Copy and paste the code shown below.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_13')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_13" class="lang-c hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">processTaskAlert</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+    <span class="hljs-comment">// Clear the ALERT interrupt source</span>
+    scifClearAlertIntSource();
+
+    <span class="hljs-comment">// Do SC Task processing here</span>
+
+    <span class="hljs-comment">// Acknowledge the ALERT event</span>
+    scifAckAlertEvents();
+} <span class="hljs-comment">// processTaskAlert</span>
+</code></pre><span class="code-title"><p>SC Task Alert Handling</p>
+</span></div></div>
+<p>The processing is simple: fetch the <code>state.high</code> variable and copy the value to
+the Red LED pin. See <a href="#sc-task-data-structure">Task 4</a> on how to access SC
+data. Copy and paste the code snippet below in <code>processTaskAlert()</code> above,
+where the SC task processing is marked.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_14')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_14" class="lang-c hljs cpp"><span class="hljs-comment">// Fetch 'state.high' variable from SC</span>
+<span class="hljs-keyword">uint8_t</span> high = scifTaskData.adcLevelTrigger.state.high;
+<span class="hljs-comment">// Set Red LED state equal to the state.high variable</span>
+GPIO_write(Board_GPIO_RLED, high);
+</code></pre><span class="code-title"><p>adc level trigger processing</p>
+</span></div></div>
+<p>This will not run just yet, as we need to connect the processing to the
+interrupt signal. Below are the three different solutions presented.</p>
+<h3 class="body-heading" id="solution-1-ndash-hwi">Solution 1 – HWI<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#solution-1-ndash-hwi"></a></h3><p>For the first solution the SC task alert handling and processing will be done
+in the <code>scTaskAlertCallback()</code> function. The <code>scTaskAlertCallback()</code> is
+executed in a HWI context, as the title suggests. So in
+<code>scTaskAlertCallback()</code>, call the <code>processTaskAlert()</code> function. See code
+snippet below.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_15')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_15" class="lang-c hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">scTaskAlertCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+    <span class="hljs-comment">// Call process function</span>
+    processTaskAlert();
+} <span class="hljs-comment">// scTaskAlertCallback</span>
+</code></pre><span class="code-title"><p>HWI SC Task alert process</p>
+</span></div></div>
+<p>Build and debug the project. Move the wire or jumper between <code>DIO28</code> and
+<code>DIO30</code> on the LaunchPad. You should see the green and red LED toggle
+in-between each other.</p>
+<p>The application is now doing nothing until the SC task generates a <code>Task ALERT</code>
+signal. The HWI callback <code>scTaskAlertCallback()</code> is then called. In the HWI
+context the callback clears the interrupt source, read the state variable
+<code>state.high</code>, set or clears the red LED, and acknowledges the ALERT event.</p>
+<h3 class="body-heading" id="solution-2-ndash-swi">Solution 2 – SWI<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#solution-2-ndash-swi"></a></h3><p>Doing extensive processing in a HWI process is not advised, as it blocks other
+high priority processes while running. For this solution, we will move the
+processing to a SWI process, and the HWI process will signal the SWI process.</p>
+<p>At the top of the <code>empty.c</code> file, add the following</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_16')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_16" class="lang-c hljs cpp"><span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> &lt;ti/sysbios/knl/Swi.h&gt;</span>
+
+<span class="hljs-comment">// SWI Task Alert</span>
+Swi_Struct swiTaskAlert;
+Swi_Handle hSwiTaskAlert;
+
+<span class="hljs-comment">// Function prototype</span>
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">processTaskAlert</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">swiTaskAlertFxn</span><span class="hljs-params">(UArg a0, UArg a1)</span>
+</span>{
+    <span class="hljs-comment">// Call process function</span>
+    processTaskAlert();
+} <span class="hljs-comment">// swiTaskAlertFxn</span>
+</code></pre><span class="code-title"><p>SWI variables and function</p>
+</span></div></div>
+<p>In the top of the <code>tirtosScThread</code> task, add the following code snippet to
+initialize the SWI process.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_17')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_17" class="lang-c hljs cpp"><span class="hljs-comment">// SWI Initialization</span>
+Swi_Params swiParams;
+Swi_Params_init(&amp;swiParams);
+swiParams.priority = <span class="hljs-number">3</span>;
+Swi_construct(&amp;swiTaskAlert, swiTaskAlertFxn, &amp;swiParams, NULL);
+hSwiTaskAlert = Swi_handle(&amp;swiTaskAlert);
+</code></pre><span class="code-title"><p>SWI initialization</p>
+</span></div></div>
+<p>Now, copy and paste the following into <code>scTaskAlertCallback()</code>. Whenever the
+<code>Task ALERT</code> signal is raised, the HWI callback will signal the SWI process,
+where the entirety of the processing will be done.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_18')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_18" class="lang-c hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">scTaskAlertCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+    <span class="hljs-comment">// Post a SWI process</span>
+    Swi_post(hSwiTaskAlert);
+} <span class="hljs-comment">// scTaskAlertCallback</span>
+</code></pre><span class="code-title"><p>SWI signalling</p>
+</span></div></div>
+<p>Again, build and debug the project. Move the wire or jumper on the LaunchPad.
+You should observe the same behavior from the HWI solution.</p>
+<p>But why was this whole process of moving the task processing to SWI context
+necessary if the behavior was the same? This would be much more obvious if the
+actual task processing was much more extensive computational wise. The current
+task is substantially small, and therefore will not impact the execution
+whatever the context it runs in. It is still advised to run the task processing
+at least in SWI context.</p>
+<h3 class="body-heading" id="solution-3-ndash-task-thread-">Solution 3 – Task (Thread)<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#solution-3-ndash-task-thread-"></a></h3><p>Next solution is to move the processing in a task context. The idea is to
+signal the main task when the HWI is run, and then in turn run the processing
+in the task. We will use a Semaphore to synchronize the signaling.</p>
+<div class="bs-callout bs-callout-warning "><h4><span class="glyphicon glyphicon-exclamation-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">Remove SWI Code
+</span></h4>
+<p>The SWI relevant code, such as the struct and handle variables,
+<code>swiTaskAlertFxn()</code> function, and initialization,  can now be commented out or
+removed. This does <strong>not</strong> include the <code>processTaskAlert()</code> function.</p>
+</div>
+<p>First up, at the top of the <code>empty.c</code> file, add the relevant header file and
+variables.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_19')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_19" class="lang-c hljs cpp"><span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> &lt;ti/sysbios/knl/Semaphore.h&gt;</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> &lt;ti/sysbios/BIOS.h&gt;</span>
+
+
+<span class="hljs-comment">// Main loop Semaphore</span>
+Semaphore_Struct semMainLoop;
+Semaphore_Handle hSemMainLoop;
+</code></pre><span class="code-title"><p>Semaphore variables</p>
+</span></div></div>
+<p>Next, In the top of the <code>tirtosScThread</code> task, initialize the semaphore struct
+and store the handle.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_20')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_20" class="lang-c hljs cpp"><span class="hljs-comment">// Semaphore initialization</span>
+Semaphore_Params semParams;
+Semaphore_Params_init(&amp;semParams);
+Semaphore_construct(&amp;semMainLoop, <span class="hljs-number">0</span>, &amp;semParams);
+hSemMainLoop = Semaphore_handle(&amp;semMainLoop);
+</code></pre><span class="code-title"><p>Semaphore initialization</p>
+</span></div></div>
+<p>Now, in the <code>scTaskAlertCallback()</code> function, you will post to the Semaphore
+which should trigger the execution in the tirtosScThread while-loop.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_21')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_21" class="lang-c hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">scTaskAlertCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+    <span class="hljs-comment">// Post to main loop semaphore</span>
+    Semaphore_post(hSemMainLoop);
+} <span class="hljs-comment">// scTaskAlertCallback</span>
+</code></pre><span class="code-title"><p>Semaphore signalling</p>
+</span></div></div>
+<p>Now in the main loop in <code>tirtosScThread()</code>, we wait on the Semaphore
+indefinitely and afterwards call <code>processTaskAlert()</code>, see code snippet below.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_22')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_22" class="lang-c hljs cpp"><span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) {
+    <span class="hljs-comment">// Wait on sem indefinitely</span>
+    Semaphore_pend(hSemMainLoop, BIOS_WAIT_FOREVER);
+
+    <span class="hljs-comment">// Call process function</span>
+    processTaskAlert();
+}
+</code></pre><span class="code-title"><p>tirtosScThread while-loop</p>
+</span></div></div>
+<p>Build and debug the project. Move the wire or jumper on the LaunchPad. The same
+behavior again should be observed. This way of using the HWI process to signal
+a task process (or a SWI process in solution 2) is the way to go. Not only does
+it free up high priority processes, but it also streamlines the application
+processing, which is important in bigger applications.</p>
+<div class="panel-group">
+  <div class="panel panel-info">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a class="accordion-toggle collapsed" data-toggle="collapse" href="#expandable_-expand-complete-code-solution-with-processing-in-task-thread-"><p> Expand Complete Code Solution with processing in Task/thread.</p>
+</a>
+      </h4>
+    </div>
+    <div id="expandable_-expand-complete-code-solution-with-processing-in-task-thread-" class="panel-collapse collapse">
+      <div class="panel-body"><p><strong>main_tirtos.c:</strong></p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_23')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_23" class="lang-c hljs cpp"><span class="hljs-comment">/*
+ *  ======== main_tirtos.c ========
+ */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> &lt;stdint.h&gt;</span>
+
+<span class="hljs-comment">/* POSIX Header files */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> &lt;pthread.h&gt;</span>
+
+<span class="hljs-comment">/* RTOS header files */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> &lt;ti/sysbios/BIOS.h&gt;</span>
+
+<span class="hljs-comment">/* Example/Board Header files */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> "Board.h"</span>
+
+<span class="hljs-keyword">extern</span> <span class="hljs-keyword">void</span> *tirtosScThread(<span class="hljs-keyword">void</span> *arg0);
+
+<span class="hljs-comment">/* Stack size in bytes */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> THREADSTACKSIZE    1024</span>
+
+<span class="hljs-comment">/*
+ *  ======== main ========
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+    pthread_t           thread;
+    pthread_attr_t      pAttrs;
+    <span class="hljs-keyword">struct</span> sched_param  priParam;
+    <span class="hljs-keyword">int</span>                 retc;
+    <span class="hljs-keyword">int</span>                 detachState;
+
+    <span class="hljs-comment">/* Call driver init functions */</span>
+    Board_initGeneral();
+
+    <span class="hljs-comment">/* Set priority and stack size attributes */</span>
+    pthread_attr_init(&amp;pAttrs);
+    priParam.sched_priority = <span class="hljs-number">1</span>;
+
+    detachState = PTHREAD_CREATE_DETACHED;
+    retc = pthread_attr_setdetachstate(&amp;pAttrs, detachState);
+    <span class="hljs-keyword">if</span> (retc != <span class="hljs-number">0</span>) {
+        <span class="hljs-comment">/* pthread_attr_setdetachstate() failed */</span>
+        <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>);
+    }
+
+    pthread_attr_setschedparam(&amp;pAttrs, &amp;priParam);
+
+    retc |= pthread_attr_setstacksize(&amp;pAttrs, THREADSTACKSIZE);
+    <span class="hljs-keyword">if</span> (retc != <span class="hljs-number">0</span>) {
+        <span class="hljs-comment">/* pthread_attr_setstacksize() failed */</span>
+        <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>);
+    }
+
+    retc = pthread_create(&amp;thread, &amp;pAttrs, tirtosScThread, NULL);
+    <span class="hljs-keyword">if</span> (retc != <span class="hljs-number">0</span>) {
+        <span class="hljs-comment">/* pthread_create() failed */</span>
+        <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>);
+    }
+
+    BIOS_start();
+
+    <span class="hljs-keyword">return</span> (<span class="hljs-number">0</span>);
+}
+</code></pre></div></div>
+<p><strong>empty.c:</strong></p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_24')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_24" class="lang-c hljs cpp"><span class="hljs-comment">/*
+ *  ======== empty.c ========
+ */</span>
+
+<span class="hljs-comment">/* For usleep() */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> &lt;unistd.h&gt;</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> &lt;stdint.h&gt;</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> &lt;stddef.h&gt;</span>
+
+<span class="hljs-comment">/* Driver Header files */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> &lt;ti/drivers/GPIO.h&gt;</span>
+<span class="hljs-comment">// #include &lt;ti/drivers/I2C.h&gt;</span>
+<span class="hljs-comment">// #include &lt;ti/drivers/SDSPI.h&gt;</span>
+<span class="hljs-comment">// #include &lt;ti/drivers/SPI.h&gt;</span>
+<span class="hljs-comment">// #include &lt;ti/drivers/UART.h&gt;</span>
+<span class="hljs-comment">// #include &lt;ti/drivers/Watchdog.h&gt;</span>
+
+<span class="hljs-comment">/* Board Header file */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> "Board.h"</span>
+
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> "scif.h"</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> BV(x)    (1 &lt;&lt; (x))</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> &lt;ti/sysbios/knl/Swi.h&gt;</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> &lt;ti/sysbios/knl/Semaphore.h&gt;</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> &lt;ti/sysbios/BIOS.h&gt;</span>
+
+<span class="hljs-comment">// Main loop Semaphore</span>
+Semaphore_Struct semMainLoop;
+Semaphore_Handle hSemMainLoop;
+
+<span class="hljs-comment">// SWI Task Alert</span>
+Swi_Struct swiTaskAlert;
+Swi_Handle hSwiTaskAlert;
+
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">processTaskAlert</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+    <span class="hljs-comment">// Clear the ALERT interrupt source</span>
+    scifClearAlertIntSource();
+
+    <span class="hljs-comment">// Do SC Task processing here</span>
+    <span class="hljs-comment">// Fetch 'state.high' variable from SC</span>
+    <span class="hljs-keyword">uint8_t</span> high = scifTaskData.adcLevelTrigger.state.high;
+    <span class="hljs-comment">// Set Red LED to the state variable</span>
+    GPIO_write(Board_GPIO_RLED, high);
+
+    <span class="hljs-comment">// Acknowledge the ALERT event</span>
+    scifAckAlertEvents();
+} <span class="hljs-comment">// processTaskAlert</span>
+
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">scCtrlReadyCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+
+} <span class="hljs-comment">// scCtrlReadyCallback</span>
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">scTaskAlertCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+
+    <span class="hljs-comment">// Post to main loop semaphore</span>
+    Semaphore_post(hSemMainLoop);
+
+} <span class="hljs-comment">// scTaskAlertCallback</span>
+
+
+<span class="hljs-comment">/*
+ *  ======== mainThread ========
+ */</span>
+<span class="hljs-keyword">void</span> *tirtosScThread(<span class="hljs-keyword">void</span> *arg0)
+{
+
+    <span class="hljs-comment">// Semaphore initialization</span>
+    Semaphore_Params semParams;
+    Semaphore_Params_init(&amp;semParams);
+    Semaphore_construct(&amp;semMainLoop, <span class="hljs-number">0</span>, &amp;semParams);
+    hSemMainLoop = Semaphore_handle(&amp;semMainLoop);
+
+    <span class="hljs-comment">/* Call driver init functions */</span>
+    GPIO_init();
+    <span class="hljs-comment">// I2C_init();</span>
+    <span class="hljs-comment">// SDSPI_init();</span>
+    <span class="hljs-comment">// SPI_init();</span>
+    <span class="hljs-comment">// UART_init();</span>
+    <span class="hljs-comment">// Watchdog_init();</span>
+
+    <span class="hljs-comment">// Initialize the Sensor Controller</span>
+    scifOsalInit();
+    scifOsalRegisterCtrlReadyCallback(scCtrlReadyCallback);
+    scifOsalRegisterTaskAlertCallback(scTaskAlertCallback);
+    scifInit(&amp;scifDriverSetup);
+
+    <span class="hljs-comment">// Set the Sensor Controller task tick interval to 1 second</span>
+    <span class="hljs-keyword">uint32_t</span> rtc_Hz = <span class="hljs-number">1</span>;  <span class="hljs-comment">// 1Hz RTC</span>
+    scifStartRtcTicksNow(<span class="hljs-number">0x00010000</span> / rtc_Hz);
+
+    <span class="hljs-comment">// Configure Sensor Controller tasks</span>
+    scifTaskData.adcLevelTrigger.cfg.threshold = <span class="hljs-number">600</span>;
+
+    <span class="hljs-comment">// Start Sensor Controller task</span>
+    scifStartTasksNbl(BV(SCIF_ADC_LEVEL_TRIGGER_TASK_ID));
+
+
+    <span class="hljs-keyword">while</span> (<span class="hljs-number">1</span>) {
+        <span class="hljs-comment">// Wait on sem indefinitely</span>
+        Semaphore_pend(hSemMainLoop, BIOS_WAIT_FOREVER);
+
+        <span class="hljs-comment">// Call process function</span>
+        processTaskAlert();
+    }
+}
+</code></pre></div></div>
+<p></p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/watch_variable_1.png" alt="Add Watch Expression" class="img-responsive"></div>
+<div class="modal-pop" style="cursor:zoom-in;"><img src="resources/watch_variable_2.png" alt="Add Watch Expression Dialog" class="img-responsive"></div><p></p>
+</div>
+    </div>
+  </div>
+</div><h2 class="body-heading" id="solutions-summary">Solutions summary<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#solutions-summary"></a></h2><p>We have now implemented and tested three different solutions.</p>
+<p><strong>HWI Context</strong>:
+This gave us the fastest possible response time, as the actual processing was
+done as close to the <code>Task ALERT</code> signal as possible. However, this is never
+advised, as any HWI process should be kept to minimal execution time and not
+block other high priority processes from executing.</p>
+<p><strong>SWI Context</strong>:
+This solution does not have as fast response time as the HWI solution, since
+the HWI process must signal the SWI process. This is however preferred over
+the HWI solution, as it does not block other high priority processes.</p>
+<p><strong>Task Context</strong>:
+This solution can result in slower response time than the SWI context solution,
+but does not block other high priority processes. This solution can safely
+scale with increasingly more complex projects.</p>
+<p>Solution two (SWI) is a viable method, but solution 3 (Task) is the preferred
+solution in most cases. It is flexible as the task priority can be adjusted,
+scalable with complex projects and can handle computational heavy processing
+without blocking time-critical high priority processes or interrupts.</p>
+<div class="bs-callout bs-callout-default "><h4><span class="glyphicon glyphicon-question-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">Quiz
+</span></h4>
+<p>Which context(s) gives the fastest response time?</p>
+<div class="quiz-toolbar"><div>
+<input type="checkbox" id="q10.37" class="answer-right" name="quiz-10" style="display:none;"><label for="q10.37" class="quiz-label quiz-float">HWI</label>
+<input type="checkbox" id="q10.38" class="answer-wrong" name="quiz-10" style="display:none;"><label for="q10.38" class="quiz-label quiz-float">SWI</label>
+<input type="checkbox" id="q10.39" class="answer-wrong" name="quiz-10" style="display:none;"><label for="q10.39" class="quiz-label quiz-float">Task</label>
+</div></div>
+<p>Which context(s) are preferred for computational heavy processing?</p>
+<div class="quiz-toolbar"><div>
+<input type="checkbox" id="q11.40" class="answer-wrong" name="quiz-11" style="display:none;"><label for="q11.40" class="quiz-label quiz-float">HWI</label>
+<input type="checkbox" id="q11.41" class="answer-right" name="quiz-11" style="display:none;"><label for="q11.41" class="quiz-label quiz-float" data-toggle="tooltip" data-html="true" data-container="body" data-placement="auto top" data-trigger="click" title="" data-original-title="&lt;p&gt; Is OK in most cases&lt;/p&gt;
+">SWI </label>
+<input type="checkbox" id="q11.42" class="answer-right" name="quiz-11" style="display:none;"><label for="q11.42" class="quiz-label quiz-float">Task</label>
+</div></div>
+<p>Which context(s) is the <strong>NOT</strong> recommended for computational heavy processing?</p>
+<div class="quiz-toolbar"><div>
+<input type="checkbox" id="q12.43" class="answer-right" name="quiz-12" style="display:none;"><label for="q12.43" class="quiz-label quiz-float">HWI</label>
+<input type="checkbox" id="q12.44" class="answer-wrong" name="quiz-12" style="display:none;"><label for="q12.44" class="quiz-label quiz-float">SWI</label>
+<input type="checkbox" id="q12.45" class="answer-wrong" name="quiz-12" style="display:none;"><label for="q12.45" class="quiz-label quiz-float">Task</label>
+</div></div>
+</div>
+<hr>
+<h1 class="body-heading" id="bonus-tasks-1-ndash-integrate-with-ble-cc2640r2f-cc13xx-or-cc26xx-">Bonus Tasks 1 – Integrate with BLE (CC2640R2F, CC13xx or CC26xx)<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#bonus-tasks-1-ndash-integrate-with-ble-cc2640r2f-cc13xx-or-cc26xx-"></a></h1><p>In this training, we are porting our simple application into the BLE project
+<code>Project Zero</code>. It is meant to show you how the application would operate
+within a bigger and more complex project. We are going to use the already
+existing service <code>Data Service</code> to communicate the current state of the ADC
+input, high or low.</p>
+<div class="bs-callout bs-callout-warning "><h4><span class="glyphicon glyphicon-exclamation-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">Hardware requirement
+</span></h4>
+<p>For this lab, you need one Bluetooth-enabled development boards. Supported 
+development boards are:</p>
+<ul>
+<li><a href="https://www.ti.com/tool/LAUNCHXL-CC2640R2">SimpleLink™ CC2640R2 LaunchPad</a></li>
+<li><a href="https://www.ti.com/tool/LAUNCHXL-CC26X2R1">SimpleLink™ CC26x2R LaunchPad™</a></li>
+<li><a href="https://www.ti.com/tool/LP-CC2652RB">SimpleLink™ CC2652RB LaunchPad™</a></li>
+<li><a href="https://www.ti.com/tool/LAUNCHXL-CC1352R1">SimpleLink™ CC1352R LaunchPad™</a></li>
+<li><a href="https://www.ti.com/tool/LAUNCHXL-CC1352P">SimpleLink™ CC1352P LaunchPad™</a></li>
+</ul>
+</div>
+<p>Instructions for CC260R2 and CC13xx/CC26xx are different. Please select the correct tab below.</p>
+<div class="panel panel-default">  <div class="panel-body"><ul class="nav nav-tabs nav-justified"><li class="active"><a data-toggle="tab" href="#tab1-0">Instructions for CC2640R2</a></li><li><a data-toggle="tab" href="#tab1-1">Instructions for CC13xx/CC26xx</a></li></ul><div style="margin-top: 1em"></div><div class="tab-content"><div id="tab1-0" class="tab-pane in active"><h2 class="body-heading" id="import-and-modify-project-zero">Import and modify Project Zero<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#import-and-modify-project-zero"></a></h2><p>First, import a fresh version of <code>Project Zero</code>. You can use Resource Explorer 
+in CCS. It can be found in the <code>SimpleLink Academy</code> package, under the <code>Bluetooth 
+LE</code> section. Expand box below for reference.</p>
+<div class="panel-group">
+  <div class="panel panel-warning">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a class="accordion-toggle collapsed" data-toggle="collapse" href="#expandable_-resource-explorer-project-zero-app-and-stack-project-path-"><p> Resource Explorer: Project Zero App and Stack project path</p>
+</a>
+      </h4>
+    </div>
+    <div id="expandable_-resource-explorer-project-zero-app-and-stack-project-path-" class="panel-collapse collapse">
+      <div class="panel-body"><p></p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/import_project0.png" alt="Bonus BLE Path" class="img-responsive"></div><p></p>
+</div>
+    </div>
+  </div>
+</div><p>Do the following:</p>
+<ul>
+<li><p>Copy and paste (you can drag and drop with the mouse in CCS) all 6 <code>scif</code>
+related code files from the <code>empty</code> project into the <code>Application/</code> folder in
+<code>Project Zero</code>.</p>
+</li>
+<li><p>Open the <code>project_zero.c</code> file.</p>
+</li>
+<li><p>Add <code>#include "scif.h"</code> at the top.</p>
+</li>
+<li><p>Add <code>APP_MSG_SC_CTRL_READY</code> and <code>APP_MSG_SC_TASK_ALERT</code> enum in the
+<code>app_msg_types_t</code> enum typedef.</p>
+</li>
+<li><p>Find the <code>ledPinTable[]</code> array. Comment out the <code>Board_GLED</code> member. Remember
+that this is the LED that the SC task controls.</p>
+</li>
+<li><p>Add the following function declarations</p>
+</li>
+</ul>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_25')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_25" class="lang-c hljs cpp"><span class="hljs-comment">// Sensor Controller functions</span>
+<span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">scCtrlReadyCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
+<span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">scTaskAlertCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
+<span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">processTaskAlert</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
+</code></pre><span class="code-title"><p>Sensor Controller Function Declarations</p>
+</span></div></div>
+<ul>
+<li><p>Copy and paste the
+<a href="#initialize-and-setup-of-sc-driver">SC Driver initialization</a> into
+<code>ProjectZero_taskFxn()</code>.</p>
+</li>
+<li><p>In <code>user_processApplicationMessage()</code>, add the following case in the switch
+statement</p>
+<ul>
+<li>Note that a case for <code>APP_MSG_SC_CTRL_READY</code> is not added because it is not
+needed in this application.</li>
+</ul>
+</li>
+</ul>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_26')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_26" class="lang-c hljs cpp"><span class="hljs-keyword">case</span> APP_MSG_SC_TASK_ALERT:
+  processTaskAlert();
+  <span class="hljs-keyword">break</span>;
+</code></pre><span class="code-title"><p>Sensor Controller Switch Case</p>
+</span></div></div>
+<ul>
+<li>Add the following functions</li>
+</ul>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_27')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_27" class="lang-c hljs cpp"><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">scCtrlReadyCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+  <span class="hljs-comment">// Notify application `Control READY` is active</span>
+  user_enqueueRawAppMsg(APP_MSG_SC_CTRL_READY, NULL, <span class="hljs-number">0</span>);
+} <span class="hljs-comment">// scCtrlReadyCallback</span>
+
+<span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">scTaskAlertCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+  <span class="hljs-comment">// Notify application `Task ALERT` is active</span>
+  user_enqueueRawAppMsg(APP_MSG_SC_TASK_ALERT, NULL, <span class="hljs-number">0</span>);
+} <span class="hljs-comment">// scTaskAlertCallback</span>
+
+<span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">processTaskAlert</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+  <span class="hljs-comment">// Clear the ALERT interrupt source</span>
+  scifClearAlertIntSource();
+
+  <span class="hljs-comment">// Get 'state.high', and set highStr to appropriate string</span>
+  <span class="hljs-keyword">uint16_t</span> high = scifTaskData.adcLevelTrigger.state.high;
+  <span class="hljs-keyword">char</span> *highStr = (high != <span class="hljs-number">0</span>) ? <span class="hljs-string">"HIGH"</span> : <span class="hljs-string">"LOW"</span>;
+  <span class="hljs-comment">// Set the highStr to the String characteristic in Data Service</span>
+  DataService_SetParameter(DS_STRING_ID, <span class="hljs-built_in">strlen</span>(highStr), highStr);
+
+  <span class="hljs-comment">// Set/clear red LED.</span>
+  PIN_setOutputValue(ledPinHandle, Board_GPIO_RLED, high);
+
+  <span class="hljs-comment">// Acknowledge the ALERT event</span>
+  scifAckAlertEvents();
+} <span class="hljs-comment">// processTaskAlert</span>
+</code></pre><span class="code-title"><p>Sensor Controller Functions</p>
+</span></div></div>
+<ul>
+<li>Build and debug the project. The first build may take a while.</li>
+</ul>
+</div><div id="tab1-1" class="tab-pane "><h2 class="body-heading" id="import-and-modify-project-zero">Import and Modify Project Zero<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#import-and-modify-project-zero"></a></h2><p>First, import a fresh version of <code>Project Zero</code>. Import it to CCS from the SDK 
+installation directory: <code>&lt;SDK&gt;\examples\rtos\CC26X2R1_LAUNCHXL\ble5stack\project_zero</code>.</p>
+<p>Do the following:</p>
+<ul>
+<li><p>Copy and paste (you can drag and drop with the mouse in CCS) all 6 <code>scif</code>
+related code files from the <code>empty</code> project into the <code>Application/</code> folder in
+<code>Project Zero</code>.</p>
+</li>
+<li><p>Open the <code>project_zero.c</code> file.</p>
+</li>
+<li><p>Add <code>#include "scif.h"</code> at the top.</p>
+</li>
+<li><p>Add <code>PZ_SC_CTRL_READY</code> and <code>PZ_SC_TASK_ALERT</code> in the application messages 
+defines list.</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_28')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_28" class="lang-c hljs cpp"><span class="hljs-comment">// Types of messages that can be sent to the user application task from other</span>
+<span class="hljs-comment">// tasks or interrupts. Note: Messages from BLE Stack are sent differently.</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> PZ_SERVICE_WRITE_EVT     0  /* A characteristic value has been written     */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> PZ_SERVICE_CFG_EVT       1  /* A characteristic configuration has changed  */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> PZ_UPDATE_CHARVAL_EVT    2  /* Request from ourselves to update a value    */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> PZ_BUTTON_DEBOUNCED_EVT  3  /* A button has been debounced with new value  */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> PZ_PAIRSTATE_EVT         4  /* The pairing state is updated                */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> PZ_PASSCODE_EVT          5  /* A pass-code/PIN is requested during pairing */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> PZ_ADV_EVT               6  /* A subscribed advertisement activity         */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> PZ_START_ADV_EVT         7  /* Request advertisement start from task ctx   */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> PZ_SEND_PARAM_UPD_EVT    8  /* Request parameter update req be sent        */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> PZ_CONN_EVT              9  /* Connection Event End notice                 */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> PZ_READ_RPA_EVT         10  /* Read RPA event                              */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> PZ_SC_CTRL_READY        11  /* Sensor controller control ready             */</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> PZ_SC_TASK_ALERT        12  /* Sensor controller task alert                */</span>
+</code></pre><span class="code-title"><p>Add two sensor controller message defines.</p>
+</span></div></div>
+</li>
+<li><p>Find the <code>ledPinTable[]</code> array. Comment out the <code>CONFIG_PIN_GLED</code> member. 
+Remember that this is the LED that the SC task controls.</p>
+</li>
+<li><p>Add the following function declarations</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_29')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_29" class="lang-c hljs cpp"><span class="hljs-comment">// Sensor Controller functions</span>
+<span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">scCtrlReadyCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
+<span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">scTaskAlertCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
+<span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">processTaskAlert</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span></span>;
+</code></pre><span class="code-title"><p>Sensor Controller Function Declarations</p>
+</span></div></div>
+</li>
+<li><p>Add the following functions</p>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_30')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_30" class="lang-c hljs cpp"><span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">scCtrlReadyCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+  <span class="hljs-comment">// Notify application `Control READY` is active</span>
+    ProjectZero_enqueueMsg(PZ_SC_CTRL_READY, <span class="hljs-number">0</span>);
+} <span class="hljs-comment">// scCtrlReadyCallback</span>
+
+<span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">scTaskAlertCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+  <span class="hljs-comment">// Notify application `Task ALERT` is active</span>
+    ProjectZero_enqueueMsg(PZ_SC_TASK_ALERT, <span class="hljs-number">0</span>);
+} <span class="hljs-comment">// scTaskAlertCallback</span>
+
+<span class="hljs-function"><span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">processTaskAlert</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+  <span class="hljs-comment">// Clear the ALERT interrupt source</span>
+  scifClearAlertIntSource();
+
+  <span class="hljs-comment">// Get 'state.high', and set highStr to appropriate string</span>
+  <span class="hljs-keyword">uint16_t</span> high = scifTaskData.adcLevelTrigger.state.high;
+  <span class="hljs-keyword">char</span> *highStr = (high != <span class="hljs-number">0</span>) ? <span class="hljs-string">"HIGH"</span> : <span class="hljs-string">"LOW"</span>;
+  <span class="hljs-comment">// Set the highStr to the String characteristic in Data Service</span>
+  DataService_SetParameter(DS_STRING_ID, <span class="hljs-built_in">strlen</span>(highStr), highStr);
+
+  <span class="hljs-comment">// Set/clear red LED.</span>
+  PIN_setOutputValue(ledPinHandle, CONFIG_PIN_RLED, high);
+
+  <span class="hljs-comment">// Acknowledge the ALERT event</span>
+  scifAckAlertEvents();
+} <span class="hljs-comment">// processTaskAlert</span>
+</code></pre><span class="code-title"><p>Sensor Controller Functions</p>
+</span></div></div>
+</li>
+<li><p>Copy and paste the
+<a href="#initialize-and-setup-of-sc-driver">SC Driver initialization</a> into
+<code>ProjectZero_taskFxn()</code>.</p>
+</li>
+<li><p>In <code>ProjectZero_processApplicationMessage()</code>, add the following case in the 
+switch statement:</p>
+<ul>
+<li>Note that a case for <code>PZ_SC_CTRL_READY</code> is not added because it is not
+needed in this application.</li>
+</ul>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_31')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_31" class="lang-c hljs cpp"><span class="hljs-keyword">case</span> PZ_SC_TASK_ALERT:
+  processTaskAlert();
+  <span class="hljs-keyword">break</span>;
+</code></pre><span class="code-title"><p>Sensor Controller Switch Case</p>
+</span></div></div>
+</li>
+<li><p>Build and debug the project. The first build may take a while.</p>
+</li>
+</ul>
+</div></div></div></div><h2 class="body-heading" id="test-ble-device">Test BLE device<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#test-ble-device"></a></h2><p>There is only a specific guide here for using the iOS app LightBlue Explorer,
+but any of the other test solutions described in
+<a href="../../blestack/ble_01_basic/ble_01_basic.html">Bluetooth Low Energy Fundamentals workshop</a>
+can also be used.</p>
+<div class="panel-group">
+  <div class="panel panel-info">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a class="accordion-toggle collapsed" data-toggle="collapse" href="#expandable_-expand-instructions-for-connecting-using-lightblue-explorer-"><p> Expand instructions for connecting using LightBlue Explorer</p>
+</a>
+      </h4>
+    </div>
+    <div id="expandable_-expand-instructions-for-connecting-using-lightblue-explorer-" class="panel-collapse collapse">
+      <div class="panel-body"><p>1. <strong>Start LightBlue Explorer</strong></p>
+<p>Using your iOS device, find the LightBlue Explorer app and open it.</p>
+<p></p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/lightblue_app_icon.png" alt="LightBlue app icon" class="img-responsive"></div><p></p>
+<p>2. <strong>Scan for BLE devices</strong></p>
+<p>The app should begin scanning for BLE devices automatically but you can refresh
+the list by pulling down. The device name is <code>Project Zero</code> or <code>Project Zero R2</code>.</p>
+<p></p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/lightblue_app1.png" alt="LightBlue app 1" class="img-responsive"></div><p></p>
+<p>Connect to the device by clicking on the name. You can press the filter button
+in the top right corner to filter out all devices out of reach by setting a RSSI
+threshold (for example -50 dBm).</p>
+<p></p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/lightblue_app2.png" alt="LightBlue app 2" class="img-responsive"></div><p></p>
+<p>3. <strong>Find Data Service (UUID 1130)</strong>
+Scroll down until you find the data service and open the string characteristic
+which is marked with an orange box below.</p>
+<p></p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/lightblue_app3.png" alt="LightBlue app 3" class="img-responsive"></div><p></p>
+<p>4. <strong>Read String Characteristic</strong>
+In the top right corner, change the format to UTF-8 and then press the "Read
+again" button to read the current characteristic value. This value will mirror
+the state.high variable in the sensor controller driver taht indicate either
+HIGH or LOW input value onn the ADC input pin. Move the header to change the
+ADC input between high and low input and press the "Read again" button to
+retrieve the new state.</p>
+<p></p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/lightblue_app4.png" alt="LightBlue app 4" class="img-responsive"></div><p></p>
+</div>
+    </div>
+  </div>
+</div><hr>
+<h1 class="body-heading" id="bonus-tasks-2-ndash-integrate-with-proprietary-rf-cc13x0-or-cc13xx-cc26xx-">Bonus Tasks 2 – Integrate with Proprietary RF (CC13x0 or CC13xx/CC26xx)<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#bonus-tasks-2-ndash-integrate-with-proprietary-rf-cc13x0-or-cc13xx-cc26xx-"></a></h1><p>In this training, we are again porting our simple application. However, now we
+are connecting it with Proprietary RF instead of BLE. We are modifying an
+already existing Proprietary Tx example project, called <code>RF Packet TX</code>. The
+application will be the transmitter, reading and storing the dawn state in a
+RF packet, while the second device will be the receiver, using SmartRF Studio
+to listen for the packet.</p>
+<div class="bs-callout bs-callout-warning "><h4><span class="glyphicon glyphicon-exclamation-sign gi-2x" style="vertical-align: middle; margin-right: 0.2em;"></span><span style="vertical-align: middle;">Hardware requirement
+</span></h4>
+<p>This bonus task requires <strong>two</strong> CC13xx/CC26xx LaunchPads; one for Tx and one for Rx.</p>
+</div>
+<h2 class="body-heading" id="import-and-modify-rf-packet-tx">Import and modify RF Packet TX<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#import-and-modify-rf-packet-tx"></a></h2><p>First, import a fresh version of the project <code>RF Packet TX</code> from the Resource
+Explorer in CCS. It can be found in the <a href="https://www.ti.com/tool/SIMPLELINK-CC13X0-SDK">SimpleLink CC13x0 SDK</a> or
+[SimpleLink CC13xx CC26xx SDK]CC13xx-CC26xx SDK]package. Expand box below for reference.</p>
+<div class="panel-group">
+  <div class="panel panel-warning">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a class="accordion-toggle collapsed" data-toggle="collapse" href="#expandable_-resource-explorer-rf-packet-tx-project-path-"><p> Resource Explorer: RF Packet TX project path</p>
+</a>
+      </h4>
+    </div>
+    <div id="expandable_-resource-explorer-rf-packet-tx-project-path-" class="panel-collapse collapse">
+      <div class="panel-body"><p></p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/bonus_prop_import_SDK.png" alt="Bonus Task Prop Import" class="img-responsive"></div><p></p>
+</div>
+    </div>
+  </div>
+</div><p>In CCS, do the following:</p>
+<ul>
+<li><p>Copy and paste all 6 <code>scif</code> related code files from <code>Empty (Minimal) Project</code>
+into the project base folder in <code>RF Packet TX</code>.</p>
+</li>
+<li><p>Open up <code>rfPacketTx.c</code> in CCS.</p>
+</li>
+<li><p>Copy and paste the following code snippet at the top of the file.</p>
+</li>
+</ul>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_32')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_32" class="lang-c hljs cpp"><span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> &lt;string.h&gt;   <span class="hljs-comment">// strlen() and memcpy()</span></span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> &lt;ti/sysbios/knl/Semaphore.h&gt;</span>
+<span class="hljs-preprocessor">#<span class="hljs-keyword">include</span> "scif.h"</span>
+
+<span class="hljs-preprocessor">#<span class="hljs-keyword">define</span> BV(x)    (1 &lt;&lt; (x))</span>
+
+Semaphore_Struct semMainLoop;
+Semaphore_Handle hSemMainLoop;
+</code></pre><span class="code-title"><p>Header Includes and Variable Declarations</p>
+</span></div></div>
+<ul>
+<li><p>Go to the already existing <code>pinTable[]</code> array and change the first PIN
+instance from <code>Board_LED1</code> to <code>Board_LED0</code>. Remember that <code>LED1</code> is
+controlled by the SC.</p>
+</li>
+<li><p>Copy and paste the SC callbacks.</p>
+</li>
+</ul>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_33')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_33" class="lang-c hljs cpp"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">scCtrlReadyCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+    <span class="hljs-comment">// Do nothing</span>
+} <span class="hljs-comment">// scCtrlReadyCallback</span>
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">scTaskAlertCallback</span><span class="hljs-params">(<span class="hljs-keyword">void</span>)</span>
+</span>{
+    <span class="hljs-comment">// Signal main loop</span>
+    Semaphore_post(hSemMainLoop);
+} <span class="hljs-comment">// scTaskAlertCallback</span>
+</code></pre><span class="code-title"><p>SC Callbacks</p>
+</span></div></div>
+<ul>
+<li>In <code>TxTask_init()</code>, add initialization for the semaphore</li>
+</ul>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_34')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_34" class="lang-c hljs cpp"><span class="hljs-comment">// Main loop Semaphore initialization</span>
+Semaphore_Params semParams;
+Semaphore_Params_init(&amp;semParams);
+semParams.mode = Semaphore_Mode_BINARY;
+Semaphore_construct(&amp;semMainLoop, <span class="hljs-number">0</span>, &amp;semParams);
+hSemMainLoop = Semaphore_handle(&amp;semMainLoop);
+</code></pre><span class="code-title"><p>Semaphore Initialization</p>
+</span></div></div>
+<ul>
+<li><p>In <code>txTaskFunction()</code>, copy and paste the
+<a href="#initialize-and-setup-of-sc-driver">SC Driver initialization</a> at the top of
+the function.</p>
+</li>
+<li><p>At the bottom of <code>txTaskFunction()</code>, replace the whole main loop with the
+code below</p>
+</li>
+</ul>
+<div style="display:inline-block"><div style="display:block"><button type="button" class="btn btn-xs btn-warning float-right select-text" style="margin: 0; position: relative;" onclick="SelectText('codeBlock_35')">Select text</button></div><div class="pre-container"><pre><code id="codeBlock_35" class="lang-c hljs cpp"><span class="hljs-comment">// Main loop</span>
+<span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>) {
+  <span class="hljs-comment">// Wait for signal</span>
+  Semaphore_pend(hSemMainLoop, BIOS_WAIT_FOREVER);
+
+  <span class="hljs-comment">// Clear the ALERT interrupt source</span>
+  scifClearAlertIntSource();
+
+  <span class="hljs-comment">// Get 'state.high', and set highStr to appropriate string</span>
+  <span class="hljs-keyword">uint16_t</span> high = scifTaskData.adcLevelTrigger.state.high;
+  <span class="hljs-keyword">const</span> <span class="hljs-keyword">char</span> *highStr = (high != <span class="hljs-number">0</span>) ? <span class="hljs-string">"HIGH"</span> : <span class="hljs-string">"LOW"</span>;
+  <span class="hljs-keyword">uint16_t</span> highStrLen = <span class="hljs-built_in">strlen</span>(highStr);
+
+  <span class="hljs-comment">// Populate packet, and set pktlen</span>
+  packet[<span class="hljs-number">0</span>] = (<span class="hljs-keyword">uint8_t</span>)(seqNumber &gt;&gt; <span class="hljs-number">8</span>);
+  packet[<span class="hljs-number">1</span>] = (<span class="hljs-keyword">uint8_t</span>)(seqNumber++);
+  <span class="hljs-built_in">memcpy</span>(packet + <span class="hljs-number">2</span>, highStr, highStrLen);
+  RF_cmdPropTx.pktLen = <span class="hljs-number">2</span> + highStrLen;
+
+  <span class="hljs-comment">// Send packet Tx</span>
+  RF_runCmd(rfHandle, (RF_Op*)&amp;RF_cmdPropTx, RF_PriorityNormal, NULL, <span class="hljs-number">0</span>);
+
+  <span class="hljs-comment">// Toggle pin</span>
+  PIN_setOutputValue(ledPinHandle, Board_LED0, high);
+
+  <span class="hljs-comment">// Acknowledge the ALERT event</span>
+  scifAckAlertEvents();
+}
+</code></pre><span class="code-title"><p>Application Main Loop</p>
+</span></div></div>
+<ul>
+<li>Build and debug project.</li>
+</ul>
+<h2 class="body-heading" id="test-proprietary-rf-application">Test Proprietary RF application<a class="anchor-link glyphicon glyphicon-link" aria-hidden="true" href="#test-proprietary-rf-application"></a></h2><p>To test the application, do the following:</p>
+<ul>
+<li>While the transmitter is running on one of the devices, open up SmartRF
+Studio. If both devices show up on the list of connected devices, disconnect
+the transmitter while setting up the receiver.</li>
+<li>Double click the available device, and choose <code>Proprietary Mode</code>.</li>
+<li>Choose the <code>50 kbps, 2-GFSK, 25 KHz deviation</code> setting at the top. This is
+usually the default.</li>
+<li>Go to the <code>Packet RX</code> tab.</li>
+<li>In the tab, check of <code>infinite</code> packet count, set viewing format to <code>Text</code>,
+and click <code>Start</code>.</li>
+<li>Try moving the wire or jumper on the transmitter. Packets with the dawn state
+should show up in SmartRF Studio.</li>
+</ul>
+<p>You should see something like the picture below. Note the red markings.
+</p><div class="modal-pop" style="cursor:zoom-in;"><img src="resources/bonus_prop_test_HighLow.png" alt="Bonus Prop Test" class="img-responsive"></div><p></p>
+</div><div class="col-xs-4 col-sm-2 sidebar-offcanvas bs-docs-sidebar hidden-print" id="sidebar-overview"><ul class="nav nav-stacked fixed" id="sidebar"><li><a href="#introduction">Introduction</a></li><li><a href="#abbreviations-terminology">Abbreviations / terminology</a></li><li><a href="#prerequisites">Prerequisites</a><ul class="nav nav-stacked"><li><a href="#completed-material">Completed material</a></li><li><a href="#software-for-desktop-development">Software for desktop development</a></li><li><a href="#hardware">Hardware</a></li></ul></li><li><a href="#getting-started-ndash-desktop">Getting started – Desktop</a><ul class="nav nav-stacked"><li><a href="#install-the-software">Install the software</a></li></ul></li><li><a href="#getting-started-ndash-hardware">Getting started – Hardware</a></li><li><a href="#task-1-ndash-import-build-and-download-clean-ti-rtos-project">Task 1 – Import, build and download clean TI-RTOS Project</a></li><li><a href="#task-2-ndash-create-and-setup-scs-project">Task 2 – Create and setup SCS project</a><ul class="nav nav-stacked"><li><a href="#create-scs-project">Create SCS project</a></li><li><a href="#setup-sc-adc-driver">Setup SC ADC Driver</a><ul class="nav nav-stacked"><li><a href="#task-properties">Task Properties</a></li><li><a href="#i-o-mapping">I/O mapping</a></li></ul></li></ul></li><li><a href="#task-3-ndash-create-sensor-controller-driver">Task 3 – Create Sensor Controller Driver</a><ul class="nav nav-stacked"><li><a href="#specify-the-rtc-trigger-period">Specify the RTC Trigger Period</a><ul class="nav nav-stacked"><li><a href="#rtc-scheduling">RTC scheduling</a></li></ul></li><li><a href="#adding-a-data-structure-member">Adding a data structure member</a></li><li><a href="#implement-the-sc-adc-driver">Implement the SC ADC driver</a><ul class="nav nav-stacked"><li><a href="#initialization-code">Initialization code</a></li><li><a href="#execution-code">Execution code</a></li><li><a href="#termination-code">Termination code</a></li></ul></li><li><a href="#compilation-error">Compilation Error</a></li><li><a href="#sensor-controller-task-testing">Sensor Controller Task Testing</a></li><li><a href="#generate-sensor-controller-driver">Generate Sensor Controller Driver</a></li></ul></li><li><a href="#task-4-ndash-implement-ti-rtos-application">Task 4 – Implement TI-RTOS Application</a><ul class="nav nav-stacked"><ul class="nav nav-stacked"><li><a href="#refactoring-and-cleanup-ti-rtos-empty-project">Refactoring and Cleanup TI-RTOS "empty" Project</a></li><li><a href="#i-o-configuration">I/O configuration</a></li></ul><li><a href="#sc-driver-interaction-and-processing">SC driver interaction and processing</a><ul class="nav nav-stacked"><li><a href="#sc-interaction">SC interaction</a></li><li><a href="#sc-task-data-structure">SC task data structure</a></li></ul></li><li><a href="#initialize-and-setup-of-sc-driver">Initialize and setup of SC driver</a><ul class="nav nav-stacked"><li><a href="#create-callback-functions">Create callback functions</a></li><li><a href="#initialize-driver-and-register-callbacks">Initialize driver and register callbacks</a></li></ul></li><li><a href="#implement-sc-driver-application-processing">Implement SC driver application processing</a><ul class="nav nav-stacked"><li><a href="#solution-1-ndash-hwi">Solution 1 – HWI</a></li><li><a href="#solution-2-ndash-swi">Solution 2 – SWI</a></li><li><a href="#solution-3-ndash-task-thread-">Solution 3 – Task (Thread)</a></li></ul></li><li><a href="#solutions-summary">Solutions summary</a></li></ul></li><li><a href="#bonus-tasks-1-ndash-integrate-with-ble-cc2640r2f-cc13xx-or-cc26xx-">Bonus Tasks 1 – Integrate with BLE (CC2640R2F, CC13xx or CC26xx)</a><ul class="nav nav-stacked"><li><a href="#import-and-modify-project-zero">Import and modify Project Zero</a></li><li><a href="#import-and-modify-project-zero">Import and Modify Project Zero</a></li><li><a href="#test-ble-device">Test BLE device</a></li></ul></li><li><a href="#bonus-tasks-2-ndash-integrate-with-proprietary-rf-cc13x0-or-cc13xx-cc26xx-">Bonus Tasks 2 – Integrate with Proprietary RF (CC13x0 or CC13xx/CC26xx)</a><ul class="nav nav-stacked"><li><a href="#import-and-modify-rf-packet-tx">Import and modify RF Packet TX</a></li><li><a href="#test-proprietary-rf-application">Test Proprietary RF application</a></li></ul></li></ul></div></div></div></div>
+<div align="center" style="margin-top: 4em;">
+<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/"><img alt="Creative Commons License" style="border-width:0" src="../../../web_support/cc_license_icon.png"></a><br>This work is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/">Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License</a>.</div>
+<link rel="stylesheet" href="../../../web_support/highlight/styles/zenburn.css">
+<script src="../../../web_support/strapdown/vendor/jquery-1.11.2.min.js"></script>
+<script src="../../../web_support/strapdown/vendor/bootstrap.min.js"></script>
+<script src="../../../web_support/highlight/highlight.pack.js"></script>
+<script type="text/javascript">document.isPreRendered = true;</script><script src="../../../web_support/strapdown/v/0.2/strapdown.js"></script>      <div class="modal" id="imagemodal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">        <div class="vertical-alignment-helper">          <div class="modal-dialog vertical-align-center">             <div class="modal-dialog">               <div class="modal-content" style="margin-left: auto;margin-right: auto;">                 <div class="modal-body">                   <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>                   <img src="" class="imagepreview img-responsive">                 </div>              </div>            </div>          </div>        </div>      </div>
+
+</body></html>

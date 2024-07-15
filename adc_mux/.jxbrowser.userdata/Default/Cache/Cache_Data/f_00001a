@@ -1,0 +1,697 @@
+[
+  {
+    "_id": "46917823713807190399619",
+    "allowPartialDownload": false,
+    "categories": [
+      [
+        "Wireless connectivity",
+        "Training"
+      ]
+    ],
+    "customGlobalResourceUids": [
+      "com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK"
+    ],
+    "dependencies": [],
+    "description": "Welcome to the SimpleLink Academy",
+    "devices": [
+      "CC26X0",
+      "CC2620F128",
+      "CC2630F128",
+      "CC2640F128",
+      "CC2650F128",
+      "CC2640R2F",
+      "CC2640R2F"
+    ],
+    "devicesVariants": [
+      "CC2620F128",
+      "CC2630F128",
+      "CC2640F128",
+      "CC2650F128",
+      "CC2640R2F",
+      "CC2640R2F"
+    ],
+    "devtools": [
+      "CC2640R2 LaunchPad"
+    ],
+    "devtools_category": [
+      "CC2640R2 LaunchPad"
+    ],
+    "fullPaths": [
+      [
+        "Wireless connectivity",
+        "Training"
+      ]
+    ],
+    "fullPathsCoreTypeId": [
+      null
+    ],
+    "fullPathsCustomAliasPublicIds": [
+      [
+        "AJ3HKMayaRkezRxrWedgQA",
+        "AH54EmikS4HEeGNZ0qKKug"
+      ]
+    ],
+    "fullPathsDevId": [
+      null
+    ],
+    "fullPathsPublicIds": [
+      "AEIJm0rwIeU.2P1OBWwlaA"
+    ],
+    "id": "com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK",
+    "image": "C:/ti/simplelink_academy_cc2640r2sdk_5_30_01_00/.metadata/simplelink_academy_logo.png",
+    "includedFiles": [
+      "."
+    ],
+    "includedFilesForDownload": [
+      "simplelink_academy_cc2640r2sdk_5_30_01_00"
+    ],
+    "includedResources": [
+      {
+        "package": "com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00"
+      }
+    ],
+    "installPath": {
+      "linux": "simplelink_academy_cc2640r2sdk_5_30_01_00/all/simplelink_academy_cc2640r2sdk_5_30_01_00__all.zip",
+      "macos": "simplelink_academy_cc2640r2sdk_5_30_01_00/all/simplelink_academy_cc2640r2sdk_5_30_01_00__all.zip",
+      "win": "simplelink_academy_cc2640r2sdk_5_30_01_00/all/simplelink_academy_cc2640r2sdk_5_30_01_00__all.zip"
+    },
+    "installSize": {
+      "linux": 40174626,
+      "macos": 40174626,
+      "win": 40174626
+    },
+    "link": "simplelink_academy_cc2640r2sdk_5_30_01_00/overview.html",
+    "linkType": "local",
+    "local": "full",
+    "localPackagePath": "C:/ti/simplelink_academy_cc2640r2sdk_5_30_01_00",
+    "metadataVersion": "3.0.0",
+    "modifiedValues": {
+      "name": "SimpleLink Academy",
+      "rootCategory": [
+        "Software",
+        "SimpleLink CC2640R2 SDK",
+        "SimpleLink Academy"
+      ],
+      "supplements": {
+        "id": "com.ti.SIMPLELINK_CC2640R2_SDK",
+        "packageId": "com.ti.SIMPLELINK_CC2640R2_SDK",
+        "semver": ">=5.30",
+        "version": ">=5.30",
+        "versionRange": ">=5.30"
+      }
+    },
+    "moduleGroups": [],
+    "modules": [],
+    "name": "SimpleLink Academy for CC2640R2",
+    "order": 0,
+    "package": "SimpleLink Academy for CC2640R2",
+    "packageId": "com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK",
+    "packageOrder": 323,
+    "packagePath": "simplelink_academy_cc2640r2sdk_5_30_01_00",
+    "packageUId": "com.ti.SIMPLELINK_ACADEMY_CC2640R2SDK__5.30.01.00",
+    "packageVersion": "5.30.01.00",
+    "resourceType": "packageOverview",
+    "rootCategory": [
+      "Wireless connectivity",
+      "Training",
+      "SimpleLink Academy for CC2640R2"
+    ],
+    "semver": "5.30.1",
+    "type": "software",
+    "version": "5.30.01.00"
+  },
+  {
+    "_id": "46913119329509203055818",
+    "allowPartialDownload": false,
+    "categories": [
+      [
+        "Wireless connectivity",
+        "Embedded Software"
+      ]
+    ],
+    "customGlobalResourceUids": [
+      "com.ti.SIMPLELINK_CC2640R2_SDK"
+    ],
+    "dependencies": [
+      {
+        "refId": "xdctools",
+        "require": "mandatory",
+        "semver": "3.51.3",
+        "version": "3.51.03.28",
+        "versionRange": "3.51.03.28"
+      },
+      {
+        "refId": "arm.ti",
+        "require": "mandatory",
+        "semver": "0.0.0",
+        "version": "18.12",
+        "versionRange": "18.12"
+      },
+      {
+        "refId": "arm.gnu",
+        "require": "optional",
+        "semver": "0.0.0",
+        "version": "7.2",
+        "versionRange": "7.2"
+      }
+    ],
+    "description": "Welcome to the SimpleLink CC2640R2 SDK",
+    "devices": [
+      "CC26X0",
+      "CC2640R2F"
+    ],
+    "devicesVariants": [
+      "CC2640R2F"
+    ],
+    "devtools": [
+      "CC2640R2 LaunchPad",
+      "CC2640R2 Remote Control",
+      "Code Composer Studio (CCS)",
+      "UniFlash",
+      "PinMux",
+      "GUI Composer",
+      "SEGGER J-Link",
+      "IAR I-JET",
+      "IAR Embedded Workbench for ARM",
+      "ELPROTRONIC",
+      "SEGGER",
+      "ELNEC",
+      "BPM Microsystems",
+      "DATA IO",
+      "Sensor Controller Studio",
+      "SmartRF Studio",
+      "SmartRF Packet Sniffer 2",
+      "Open On-Chip Debugger (OpenOCD) for SimpleLink™ Connected MCUs",
+      "XDS100v2 JTAG Debug Probe (14-pin TI version)",
+      "XDS100v2 JTAG Debug Probe (20-pin TI version)",
+      "XDS100v2 JTAG Debug Probe (ARM version)",
+      "XDS110 Debug Probe",
+      "XDS200 USB Debug Probe",
+      "XDS560v2 System Trace USB Debug Probe"
+    ],
+    "devtools_category": [
+      "CC2640R2 LaunchPad",
+      "CC2640R2 Remote Control",
+      "Code Composer Studio (CCS)",
+      "UniFlash",
+      "PinMux",
+      "GUI Composer",
+      "SEGGER J-Link",
+      "IAR I-JET",
+      "IAR Embedded Workbench for ARM",
+      "ELPROTRONIC",
+      "SEGGER",
+      "ELNEC",
+      "BPM Microsystems",
+      "DATA IO",
+      "Sensor Controller Studio",
+      "SmartRF Studio",
+      "SmartRF Packet Sniffer 2",
+      "Open On-Chip Debugger (OpenOCD) for SimpleLink™ Connected MCUs",
+      "XDS100v2 JTAG Debug Probe (14-pin TI version)",
+      "XDS100v2 JTAG Debug Probe (20-pin TI version)",
+      "XDS100v2 JTAG Debug Probe (ARM version)",
+      "XDS110 Debug Probe",
+      "XDS200 USB Debug Probe",
+      "XDS560v2 System Trace USB Debug Probe"
+    ],
+    "fullPaths": [
+      [
+        "Wireless connectivity",
+        "Embedded Software"
+      ]
+    ],
+    "fullPathsCoreTypeId": [
+      null
+    ],
+    "fullPathsCustomAliasPublicIds": [
+      [
+        "ADMz2LGBMlg4I83PRXXFWw",
+        "ADXGeHh9z64V0mfFQLZvzg"
+      ]
+    ],
+    "fullPathsDevId": [
+      null
+    ],
+    "fullPathsPublicIds": [
+      "AEIJm0rwIeU.2P1OBWwlaA"
+    ],
+    "id": "com.ti.SIMPLELINK_CC2640R2_SDK",
+    "image": "c:\\ti\\simplelink_cc2640r2_sdk_5_30_00_03/.metadata/.tirex/cc2640r2-tirex.png",
+    "includedFiles": [
+      "."
+    ],
+    "includedFilesForDownload": [
+      "simplelink_cc2640r2_sdk_5_30_00_03"
+    ],
+    "includedResources": [
+      {
+        "package": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03"
+      }
+    ],
+    "installPath": {
+      "linux": "simplelink_cc2640r2_sdk_5_30_00_03/linux/simplelink_cc2640r2_sdk_5_30_00_03__linux.zip",
+      "macos": "simplelink_cc2640r2_sdk_5_30_00_03/macos/simplelink_cc2640r2_sdk_5_30_00_03__macos.zip",
+      "win": "simplelink_cc2640r2_sdk_5_30_00_03/win/simplelink_cc2640r2_sdk_5_30_00_03__win.zip"
+    },
+    "installSize": {
+      "linux": 297166816,
+      "macos": 285964532,
+      "win": 284526514
+    },
+    "license": "simplelink_cc2640r2_sdk_5_30_00_03/license_simplelink_cc2640r2_sdk_5_30_00_03.txt",
+    "local": "full",
+    "localPackagePath": "c:\\ti\\simplelink_cc2640r2_sdk_5_30_00_03",
+    "metadataVersion": "3.0.0",
+    "modifiedValues": {
+      "rootCategory": [
+        "Software",
+        "SimpleLink CC2640R2 SDK"
+      ]
+    },
+    "moduleGroups": [],
+    "modules": [],
+    "name": "SimpleLink CC2640R2 SDK",
+    "order": 0,
+    "package": "SimpleLink CC2640R2 SDK",
+    "packageId": "com.ti.SIMPLELINK_CC2640R2_SDK",
+    "packageOrder": 431,
+    "packagePath": "simplelink_cc2640r2_sdk_5_30_00_03",
+    "packageUId": "com.ti.SIMPLELINK_CC2640R2_SDK__5.30.00.03",
+    "packageVersion": "5.30.00.03",
+    "resourceType": "packageOverview",
+    "rootCategory": [
+      "Wireless connectivity",
+      "Embedded Software",
+      "SimpleLink CC2640R2 SDK"
+    ],
+    "semver": "5.30.0",
+    "type": "software",
+    "version": "5.30.00.03"
+  },
+  {
+    "_id": "4694750314644703616342",
+    "allowPartialDownload": false,
+    "categories": [
+      [
+        "Software Tools"
+      ]
+    ],
+    "customGlobalResourceUids": [
+      "xdctools"
+    ],
+    "dependencies": [],
+    "description": "Tools for developing and using embedded target content that extends or depends on <a href:\"http://www.eclipse.org/rtsc\">RTSC</a>",
+    "devices": [],
+    "devicesVariants": [],
+    "fullPaths": [
+      [
+        "Software Tools"
+      ]
+    ],
+    "fullPathsCoreTypeId": [
+      null
+    ],
+    "fullPathsCustomAliasPublicIds": [
+      []
+    ],
+    "fullPathsDevId": [
+      null
+    ],
+    "fullPathsPublicIds": [
+      "AFtk-cVT960u0ztJqnMGrQ"
+    ],
+    "hideByDefault": true,
+    "id": "xdctools",
+    "image": "C:/ti/ccs1270/xdctools_3_51_03_28_core/.metadata/.tirex/logo.png",
+    "includedFiles": [
+      "."
+    ],
+    "includedFilesForDownload": [
+      "xdctools_3_51_03_28_core"
+    ],
+    "includedResources": [
+      {
+        "package": "xdctools__3.51.03.28"
+      }
+    ],
+    "installPath": {
+      "linux": "xdctools_3_51_03_28_core/xdctools_3_51_03_28_core__linux.zip",
+      "macos": "xdctools_3_51_03_28_core/xdctools_3_51_03_28_core__macos.zip",
+      "win": "xdctools_3_51_03_28_core/xdctools_3_51_03_28_core__win.zip"
+    },
+    "installSize": {
+      "linux": 76024838,
+      "macos": 75853530,
+      "win": 69413700
+    },
+    "local": "full",
+    "localPackagePath": "C:/ti/ccs1270/xdctools_3_51_03_28_core",
+    "metadataVersion": "3.0.0",
+    "modifiedValues": {
+      "rootCategory": [
+        "Software Tools",
+        "XDCTools"
+      ]
+    },
+    "moduleGroups": [],
+    "modules": [],
+    "name": "XDCTools",
+    "order": 0,
+    "package": "XDCTools",
+    "packageId": "xdctools",
+    "packageOrder": 577,
+    "packagePath": "xdctools_3_51_03_28_core",
+    "packageUId": "xdctools__3.51.03.28",
+    "packageVersion": "3.51.03.28",
+    "resourceType": "packageOverview",
+    "rootCategory": [
+      "Software Tools",
+      "XDCTools"
+    ],
+    "semver": "3.51.3",
+    "type": "software",
+    "version": "3.51.03.28"
+  },
+  {
+    "_id": "46916822344388866993579",
+    "allowPartialDownload": false,
+    "categories": [
+      [
+        "Software Tools"
+      ]
+    ],
+    "customGlobalResourceUids": [
+      "sysconfig"
+    ],
+    "dependencies": [],
+    "description": "SysConfig Tool",
+    "devices": [],
+    "devicesVariants": [],
+    "fullPaths": [
+      [
+        "Software Tools"
+      ]
+    ],
+    "fullPathsCoreTypeId": [
+      null
+    ],
+    "fullPathsCustomAliasPublicIds": [
+      []
+    ],
+    "fullPathsDevId": [
+      null
+    ],
+    "fullPathsPublicIds": [
+      "AMoTiNOlr5Uu8vmu20D6Hw"
+    ],
+    "hideByDefault": true,
+    "id": "sysconfig",
+    "includedFiles": [
+      "."
+    ],
+    "includedFilesForDownload": [
+      "sysconfig_1.20.0"
+    ],
+    "includedResources": [
+      {
+        "package": "sysconfig__1.20.0"
+      }
+    ],
+    "installPath": {
+      "linux": "sysconfig_1.20.0/linux/sysconfig_1.20.0__linux.zip",
+      "macos": "sysconfig_1.20.0/macos/sysconfig_1.20.0__osx.zip",
+      "win": "sysconfig_1.20.0/win/sysconfig_1.20.0__win.zip"
+    },
+    "installSize": {
+      "linux": 63259372,
+      "macos": 60646644,
+      "win": 56986836
+    },
+    "local": "full",
+    "localPackagePath": "C:/ti/ccs1270/ccs/utils/sysconfig_1.20.0",
+    "metadataVersion": "3.0.0",
+    "modifiedValues": {
+      "rootCategory": [
+        "Software Tools",
+        "SysConfig"
+      ]
+    },
+    "moduleGroups": [],
+    "modules": [],
+    "name": "SysConfig",
+    "order": 0,
+    "package": "SysConfig",
+    "packageId": "sysconfig",
+    "packageOrder": 585,
+    "packagePath": "sysconfig_1.20.0",
+    "packageUId": "sysconfig__1.20.0",
+    "packageVersion": "1.20.0",
+    "resourceType": "packageOverview",
+    "rootCategory": [
+      "Software Tools",
+      "SysConfig"
+    ],
+    "semver": "1.20.0",
+    "type": "software",
+    "version": "1.20.0"
+  },
+  {
+    "_id": "4691014231683068121295",
+    "allowPartialDownload": false,
+    "categories": [
+      [
+        "Software Tools"
+      ]
+    ],
+    "customGlobalResourceUids": [
+      "LPCS-DEVICE-SUPPORT"
+    ],
+    "dependencies": [],
+    "description": "LPCS Device Support Files",
+    "devices": [
+      "CC13X2",
+      "CC13X2X7",
+      "CC13X1",
+      "CC13X4",
+      "CC26X2",
+      "CC26X2X7",
+      "CC26X1",
+      "CC23X0",
+      "CC1312R1F3",
+      "CC1312PSIP",
+      "CC1352R1F3",
+      "CC1352P1F3",
+      "CC1312R7",
+      "CC1352P7",
+      "CC1311R3",
+      "CC1311P3",
+      "CC1314R10",
+      "CC1354R10",
+      "CC1354P10",
+      "CC2642R1F",
+      "CC2652R1F",
+      "CC2652RB1F",
+      "CC2652P1F",
+      "CC2652RSIP",
+      "CC2652PSIP",
+      "CC2652R7",
+      "CC2652P7",
+      "CC2651R3",
+      "CC2651P3",
+      "CC2651R3SIPA",
+      "CC2340R5",
+      "CC2340R5-Q1"
+    ],
+    "devicesVariants": [
+      "CC1312R1F3",
+      "CC1312PSIP",
+      "CC1352R1F3",
+      "CC1352P1F3",
+      "CC1312R7",
+      "CC1352P7",
+      "CC1311R3",
+      "CC1311P3",
+      "CC1314R10",
+      "CC1354R10",
+      "CC1354P10",
+      "CC2642R1F",
+      "CC2652R1F",
+      "CC2652RB1F",
+      "CC2652P1F",
+      "CC2652RSIP",
+      "CC2652PSIP",
+      "CC2652R7",
+      "CC2652P7",
+      "CC2651R3",
+      "CC2651P3",
+      "CC2651R3SIPA",
+      "CC2340R5",
+      "CC2340R5-Q1"
+    ],
+    "devtools": [
+      "CC1312R LaunchPad",
+      "CC1312PSIP LaunchPad",
+      "CC1352R LaunchPad",
+      "CC1352P1 LaunchPad",
+      "CC1352P-2 LaunchPad",
+      "CC1352P-4 LaunchPad",
+      "CC1312R7 LaunchPad",
+      "CC1352P7-1 LaunchPad",
+      "CC1352P7-4 LaunchPad",
+      "CC1311P3 LaunchPad",
+      "CC1314R10 LaunchPad",
+      "CC1354P10-1 LaunchPad",
+      "CC1354P10-6 LaunchPad",
+      "ULP Sense BoosterPack",
+      "LaunchPad XDS110ET Debugger",
+      "LaunchPad XDS110 Debugger",
+      "CC26x2R LaunchPad",
+      "CC2652RB LaunchPad",
+      "CC2652RSIP LaunchPad",
+      "CC2652PSIP LaunchPad",
+      "CC2652R7 LaunchPad",
+      "CC2651P3 LaunchPad",
+      "CC2651R3SIPA LaunchPad",
+      "Code Composer Studio (CCS)",
+      "CC2340R5 LaunchPad",
+      "UniFlash",
+      "PinMux",
+      "GUI Composer",
+      "SEGGER J-Link",
+      "IAR I-JET",
+      "IAR Embedded Workbench for ARM",
+      "ELPROTRONIC",
+      "SEGGER",
+      "ELNEC",
+      "BPM Microsystems",
+      "DATA IO",
+      "Sensor Controller Studio",
+      "SmartRF Studio",
+      "SmartRF Packet Sniffer 2",
+      "Open On-Chip Debugger (OpenOCD) for SimpleLink™ Connected MCUs",
+      "XDS100v2 JTAG Debug Probe (14-pin TI version)",
+      "XDS100v2 JTAG Debug Probe (20-pin TI version)",
+      "XDS100v2 JTAG Debug Probe (ARM version)",
+      "XDS110 Debug Probe",
+      "XDS200 USB Debug Probe",
+      "XDS560v2 System Trace USB Debug Probe"
+    ],
+    "devtools_category": [
+      "CC1312R LaunchPad",
+      "CC1312PSIP LaunchPad",
+      "CC1352R LaunchPad",
+      "CC1352P1 LaunchPad",
+      "CC1352P-2 LaunchPad",
+      "CC1352P-4 LaunchPad",
+      "CC1312R7 LaunchPad",
+      "CC1352P7-1 LaunchPad",
+      "CC1352P7-4 LaunchPad",
+      "CC1311P3 LaunchPad",
+      "CC1314R10 LaunchPad",
+      "CC1354P10-1 LaunchPad",
+      "CC1354P10-6 LaunchPad",
+      "ULP Sense BoosterPack",
+      "LaunchPad XDS110ET Debugger",
+      "LaunchPad XDS110 Debugger",
+      "CC26x2R LaunchPad",
+      "CC2652RB LaunchPad",
+      "CC2652RSIP LaunchPad",
+      "CC2652PSIP LaunchPad",
+      "CC2652R7 LaunchPad",
+      "CC2651P3 LaunchPad",
+      "CC2651R3SIPA LaunchPad",
+      "Code Composer Studio (CCS)",
+      "CC2340R5 LaunchPad",
+      "UniFlash",
+      "PinMux",
+      "GUI Composer",
+      "SEGGER J-Link",
+      "IAR I-JET",
+      "IAR Embedded Workbench for ARM",
+      "ELPROTRONIC",
+      "SEGGER",
+      "ELNEC",
+      "BPM Microsystems",
+      "DATA IO",
+      "Sensor Controller Studio",
+      "SmartRF Studio",
+      "SmartRF Packet Sniffer 2",
+      "Open On-Chip Debugger (OpenOCD) for SimpleLink™ Connected MCUs",
+      "XDS100v2 JTAG Debug Probe (14-pin TI version)",
+      "XDS100v2 JTAG Debug Probe (20-pin TI version)",
+      "XDS100v2 JTAG Debug Probe (ARM version)",
+      "XDS110 Debug Probe",
+      "XDS200 USB Debug Probe",
+      "XDS560v2 System Trace USB Debug Probe"
+    ],
+    "fullPaths": [
+      [
+        "Software Tools"
+      ]
+    ],
+    "fullPathsCoreTypeId": [
+      null
+    ],
+    "fullPathsCustomAliasPublicIds": [
+      []
+    ],
+    "fullPathsDevId": [
+      null
+    ],
+    "fullPathsPublicIds": [
+      "ABVL7KM4SL6In3bzPWG83Q"
+    ],
+    "hideByDefault": true,
+    "id": "LPCS-DEVICE-SUPPORT",
+    "includedFiles": [
+      "."
+    ],
+    "includedFilesForDownload": [
+      "LPCS-DEVICE-SUPPORT__3.19.00.12/ccs_base"
+    ],
+    "includedResources": [
+      {
+        "package": "LPCS-DEVICE-SUPPORT__3.19.00.12"
+      }
+    ],
+    "installPath": {
+      "linux": "LPCS-DEVICE-SUPPORT__3.19.00.12/ccs_base/linux/lpcs_device_support_linux_3.19.00.12.zip",
+      "macos": "LPCS-DEVICE-SUPPORT__3.19.00.12/ccs_base/macos/lpcs_device_support_osx_3.19.00.12.zip",
+      "win": "LPCS-DEVICE-SUPPORT__3.19.00.12/ccs_base/win/lpcs_device_support_win_3.19.00.12.zip"
+    },
+    "installSize": {
+      "linux": 4117347,
+      "macos": 4060913,
+      "win": 3822008
+    },
+    "local": "full",
+    "localPackagePath": "C:/ti/ccs1270/ccs/ccs_base",
+    "metadataVersion": "3.1.0",
+    "modifiedValues": {
+      "rootCategory": [
+        "Software Tools",
+        "LPCS Device Support Files"
+      ]
+    },
+    "moduleGroups": [],
+    "modules": [],
+    "name": "LPCS Device Support Files",
+    "order": 0,
+    "package": "LPCS Device Support Files",
+    "packageId": "LPCS-DEVICE-SUPPORT",
+    "packageOrder": 606,
+    "packagePath": "LPCS-DEVICE-SUPPORT__3.19.00.12/ccs_base",
+    "packageUId": "LPCS-DEVICE-SUPPORT__3.19.00.12",
+    "packageVersion": "3.19.00.12",
+    "resourceType": "packageOverview",
+    "rootCategory": [
+      "Software Tools",
+      "LPCS Device Support Files"
+    ],
+    "semver": "3.19.0",
+    "subType": "ccsComponent",
+    "type": "software",
+    "version": "3.19.00.12"
+  }
+]

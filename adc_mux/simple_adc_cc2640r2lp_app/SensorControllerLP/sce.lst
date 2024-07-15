@@ -1,0 +1,1490 @@
+               .deffile adi_defs__0.asm
+               .deffile ddi_defs__0.asm
+               .deffile reg_defs__0.asm
+               .deffile sce_defs__0.asm
+
+               ; Number of supported tasks
+               .define TASK_COUNT      1
+
+               ; Resource-specified definitions, if any
+               ; (None)
+
+
+               .segment begin "Framework"
+
+
+               VectorTable:
+0000 ---- 1408                         jsr         PowerUp
+0001 ---- 040c                         jmp         TaskCtrlReqVector
+0002 ---- 1408                         jsr         PowerUp
+0003 ---- 042c                         jmp         AonRtcCh2Vector
+0004 ---- 1408                         jsr         PowerUp
+0005 ---- 0447                         jmp         Event0Vector
+0006 ---- 1408                         jsr         PowerUp
+0007 ---- 044d                         jmp         TaskAlertAckVector
+
+
+
+
+               PowerUp:
+                                       ; Deassert the power-down request
+0008 ---- 4436                         iobclr      #0, [#IOP_WUC_PWRDWNREQ]
+
+                                       ; Wait for it to take effect
+0009 ---- 2437 /waitForPdAck:          iobtst      #0, [#IOP_WUC_PWRDWNACK]
+000a ---- aefe                         biob1       /waitForPdAck
+
+               FwEmptyFunc:            ; Done
+000b ---- adb7                         rts
+
+
+
+
+               TaskCtrlReqVector:
+                                       ; Clear the vector flag
+000c ---- 6442                         iobset      #0, [#IOP_EVCTL_VECFLAGSCLR]
+
+                                       ; For each task ...
+000d ---- 7000                         ld          R7, #0
+               /loop:
+                                           ; Save the task ID
+000e ---- 7c6b                             st          R7, [#fwCtrlInt/taskId]
+
+                                           ; Handle initialize request, if any
+000f ---- 6872                             ld          R6, [#fwCtrlExt/bvTaskInitializeReq]
+0010 ---- 0068                             ld          R0, #pFwTaskInitializeFuncTable
+0011 ---- 1425                             jsr         /handleReq
+
+                                           ; Handle execute request, if any
+0012 ---- 6873                             ld          R6, [#fwCtrlExt/bvTaskExecuteReq]
+0013 ---- 0069                             ld          R0, #pFwTaskExecuteFuncTable
+0014 ---- 1425                             jsr         /handleReq
+
+                                           ; Handle terminate request, if any
+0015 ---- 6874                             ld          R6, [#fwCtrlExt/bvTaskTerminateReq]
+0016 ---- 006a                             ld          R0, #pFwTaskTerminateFuncTable
+0017 ---- 1425                             jsr         /handleReq
+
+                                           ; Move on to the next task
+0018 ---- 786b                             ld          R7, [#fwCtrlInt/taskId]
+0019 ---- f801                             add         R7, #1
+
+001a ---- fa01                         cmp         R7, #TASK_COUNT
+001b ---- bef2                         bneq        /loop
+
+                                       ; Update which tasks are ...
+001c ---- 7870                         ld          R7, [#fwCtrlExt/bvActiveTasks]
+                                       ; ... currently active ...
+001d ---- 6872                         ld          R6, [#fwCtrlExt/bvTaskInitializeReq]
+001e ---- fd0e                         or          R7, R6
+                                       ; ... and inactive ...
+001f ---- 6874                         ld          R6, [#fwCtrlExt/bvTaskTerminateReq]
+0020 ---- ed92                         inv         R6
+0021 ---- fd06                         and         R7, R6
+0022 ---- 7c70                         st          R7, [#fwCtrlExt/bvActiveTasks]
+
+                                       ; We're READY for another request
+0023 ---- 642d                         iobset      #IOB_EVCTL_SWEV_READY, [#IOP_EVCTL_SWEVSET]
+
+                                       ; Generate an ALERT interrupt if needed before powering back down
+0024 ---- 0450                         jmp         GenAlertInterrupt;
+
+               /handleReq:
+                                       ; Restore the task ID, and load the function pointer (here to avoid pipeline hazard)
+0025 ---- 786b                         ld          R7, [#fwCtrlInt/taskId]
+0026 ---- 8f1f                         ld          R0, [R7+R0]
+
+                                       ; Skip this request?
+0027 ---- ed8f                         lsr         R6, R7
+0028 ---- ec01                         tst         R6, #0x0001
+0029 ---- be01                         bnz         /noSkip
+002a ---- adb7                             rts
+               /noSkip:
+                                       ; Make the call by jump, with return (rts) in the "called" function
+002b ---- 8db7                         jmp         R0
+
+
+
+
+               AonRtcCh2Vector:
+                                       ; Start clearing the RTC event
+002c ---- 6630                         iobset      #IOB_WUC_WUEV_RTC, [#IOP_WUC_WUEVCLR]
+
+                                       ; Clear the vector flag
+002d ---- 6542                         iobset      #1, [#IOP_EVCTL_VECFLAGSCLR]
+
+                                       ; For each task (R0 is the current task ID) ...
+002e ---- 0000                         ld          R0, #0
+               /loop:
+                                           ; ... that is active ...
+002f ---- 1870                             ld          R1, [#fwCtrlExt/bvActiveTasks]
+0030 ---- 9d88                             lsr         R1, R0
+0031 ---- 9c01                             tst         R1, #0x0001
+0032 ---- b60d                             bz          /skip
+
+                                               ; Fetch number of RTC intervals until next execution
+0033 ---- 1067                                 ld          R1, #pFwTaskExecuteScheduleTable
+0034 ---- af19                                 ld          R2, [R1+R0]
+
+                                               ; If not already 0, decrement and store. If then 0 ...
+0035 ---- aa00                                 cmp         R2, #0
+0036 ---- b609                                 beq         /skip
+0037 ---- a8ff                                 add         R2, #-1
+0038 ---- af39                                 st          R2, [R1+R0]
+0039 ---- be06                                 bnz         /skip
+
+                                                   ; ... execute the task
+003a ---- 0c6b                                     st          R0, [#fwCtrlInt/taskId]
+003b ---- 8869                                     add         R0, #pFwTaskExecuteFuncTable
+003c ---- 8f08                                     ld          R0, [R0]
+                                                   ; Insert NOP to avoid pipeline hazard
+003d ---- fd47                                     nop
+003e ---- 9db7                                     jsr         R0
+003f ---- 086b                                     ld          R0, [#fwCtrlInt/taskId]
+               /skip:
+                                           ; Move on to the next task
+0040 ---- 8801                             add         R0, #1
+
+0041 ---- 8a01                         cmp         R0, #TASK_COUNT
+0042 ---- beec                         bneq        /loop
+
+                                       ; Wait for the ACK event to be cleared
+0043 ---- 262f /waitOnRtcClearing:     iobtst      #IOB_WUC_WUEV_RTC, [#IOP_WUC_WUEVFLAGS]
+0044 ---- aefe                         biob1       /waitOnRtcClearing
+0045 ---- 4630                         iobclr      #IOB_WUC_WUEV_RTC, [#IOP_WUC_WUEVCLR]
+
+                                       ; Generate an ALERT interrupt if needed
+0046 ---- 0450                         jmp         GenAlertInterrupt;
+
+
+
+
+               Event0Vector:
+                                       ; Disable and clear the vector flag
+0047 ---- 5527                         iobclr      #IOB_EVCTL_VECCFG1_VEC2_EN, [#IOP_EVCTL_VECCFG1]
+0048 ---- 6642                         iobset      #2, [#IOP_EVCTL_VECFLAGSCLR]
+
+                                       ; Set the task ID
+0049 ---- 0000                         ld          R0, #0
+004a ---- 0c6b                         st          R0, [#fwCtrlInt/taskId]
+
+                                       ; Jump to the event task code
+004b ---- 140b                         jsr         FwEmptyFunc
+
+                                       ; Generate an ALERT interrupt if needed
+004c ---- 0450                         jmp         GenAlertInterrupt;
+
+
+
+
+               TaskAlertAckVector:
+                                       ; Clear the vector flag
+004d ---- 6742                         iobset      #3, [#IOP_EVCTL_VECFLAGSCLR]
+
+                                       ; Re-enable generation of ALERT interrupts
+004e ---- 03ff                         ld          R0, #-1
+004f ---- 0c6d                         st          R0, [#fwCtrlInt/alertGenMask]
+
+                                       ; Fall through to GenAlertInterrupt to generate another ALERT interrupt if needed
+
+
+
+
+               GenAlertInterrupt:
+                                       ; Do we have any ALERT-generating flags pending?
+0050 ---- 786c                         ld          R7, [#fwCtrlInt/bvTaskIoAlert]
+
+                                       ; Skip if the last I/O ALERT interrupt has not been acknowledged
+0051 ---- 686d                         ld          R6, [#fwCtrlInt/alertGenMask]
+0052 ---- ed37                         tst         R6, R7
+0053 ---- b605                         bz          /skipAlertGen
+
+                                           ; Transfer I/O flags from internal to external
+0054 ---- 0000                             ld          R0, #0
+0055 ---- 0c6c                             st          R0, [#fwCtrlInt/bvTaskIoAlert]
+0056 ---- 7c71                             st          R7, [#fwCtrlExt/bvTaskIoAlert]
+
+                                           ; Generate the ALERT interrupt, and clear the generation mask
+0057 ---- 652d                             iobset      #IOB_EVCTL_SWEV_ALERT, [#IOP_EVCTL_SWEVSET]
+0058 ---- 0c6d                             st          R0, [#fwCtrlInt/alertGenMask]
+               /skipAlertGen:
+                                       ; Fall through to PowerDown ...
+
+
+
+
+               PowerDown:
+                                       ; If there are no unacknowledged ALERTs and no vectors pending ...
+0059 ---- 786d                         ld          R7, [#fwCtrlInt/alertGenMask]
+005a ---- 686e                         ld          R6, [#fwCtrlInt/alertCanPdAuxMask]
+005b ---- fd0e                         or          R7, R6
+005c ---- f801                         add         R7, #1 ; 0xFFFF -> 0x0000
+005d ---- e92b                         in          R6, [#IOP_EVCTL_VECFLAGS]
+005e ---- fd0e                         or          R7, R6
+005f ---- be01                         bnz         /noPowerDown
+
+                                           ; Assert the power-down request. We'll make sure that it has taken effect
+                                           ; or been completely ignored when waking up again
+0060 ---- 6436                             iobset      #0, [#IOP_WUC_PWRDWNREQ]
+               /noPowerDown:
+                                       ; Sleep until the next event
+0061 ---- bdb7 sleepInstr:             sleep
+
+
+
+
+0062 ---- 241a AdiDdiAcquire:          iobtst      #0, [#IOP_SMPH_SMPH0]
+0063 ---- a6fe                         biob0       AdiDdiAcquire
+0064 ---- adb7                         rts
+
+0065 ---- 641a AdiDdiRelease:          iobset      #0, [#IOP_SMPH_SMPH0]
+0066 ---- adb7                         rts
+
+
+
+
+               ; RTC ticks until next execution, one word for each task
+               pFwTaskExecuteScheduleTable:
+0067 ---- 0000                         dw          #0
+
+               ; Task code function pointers for each task code block, one word for each task
+               pFwTaskInitializeFuncTable:
+0068 ---- 008b                         dw          #adcLevelTrigger/initialize
+               pFwTaskExecuteFuncTable:
+0069 ---- 008e                         dw          #adcLevelTrigger/execute
+               pFwTaskTerminateFuncTable:
+006a ---- 033c                         dw          #adcLevelTrigger/terminate
+
+               ; Run-time logging log requests and masks, one bit for each struct, one word for each task
+               pRtlTaskLogReqTable:
+               ; (Run-time logging is not used in this project)
+               pRtlTaskLogMaskTable:
+               ; (Run-time logging is not used in this project)
+
+
+               ; Internal control data
+               fwCtrlInt:
+006b ---- 0000 /taskId:                dw          #0      ; ID of the currently running task
+006c ---- 0000 /bvTaskIoAlert:         dw          #0x0000 ; LSB = Normal data exchange, MSB = Overflow or underflow
+006d ---- ffff /alertGenMask:          dw          #0xFFFF ; Can generate an ALERT interrupt now? (0xFFFF = yes, 0x0000 = no)
+006e ---- 0000 /alertCanPdAuxMask:     dw          #0x0000 ; Can power down AUX domain after ALERT interrupt generation? (0xFFFF = yes, 0x0000 = no)
+006f ---- 0000 /rtlStructLockReq:      dw          #0x0000 ; Run-time logging struct lock request (0=idle -> 1=requested -> 2=ready -> access -> 0=idle)
+
+               ; External control data, shared with the driver
+               fwCtrlExt:
+0070 ---- 0000 /bvActiveTasks:         dw          #0x0000 ; Indicates which tasks are currently active
+0071 ---- 0000 /bvTaskIoAlert:         dw          #0x0000 ; LSB = Normal data exchange, MSB = Overflow or underflow
+0072 ---- 0000 /bvTaskInitializeReq:   dw          #0x0000 ; Requests tasks to start
+0073 ---- 0000 /bvTaskExecuteReq:      dw          #0x0000 ; Requests tasks to execute once immediately
+0074 ---- 0000 /bvTaskTerminateReq:    dw          #0x0000 ; Requests tasks to stop
+
+
+               .segment end "Framework"
+
+
+               fwTaskDataStructures:
+               .segment begin "Task: adc level trigger"
+               adcLevelTrigger/cfg:
+               adcLevelTrigger/input:
+               adcLevelTrigger/output:
+               adcLevelTrigger/output/adcBuffer:
+0075 ---- 0000                         dw          #0
+0076 ---- 0000                         dw          #0
+0077 ---- 0000                         dw          #0
+0078 ---- 0000                         dw          #0
+0079 ---- 0000                         dw          #0
+007a ---- 0000                         dw          #0
+007b ---- 0000                         dw          #0
+007c ---- 0000                         dw          #0
+007d ---- 0000                         dw          #0
+007e ---- 0000                         dw          #0
+007f ---- 0000                         dw          #0
+0080 ---- 0000                         dw          #0
+               adcLevelTrigger/output/adcVal0:
+0081 ---- 0000                         dw          #0
+               adcLevelTrigger/output/adcValues:
+0082 ---- 0000                         dw          #0
+0083 ---- 0000                         dw          #0
+0084 ---- 0000                         dw          #0
+0085 ---- 0000                         dw          #0
+0086 ---- 0000                         dw          #0
+0087 ---- 0000                         dw          #0
+0088 ---- 0000                         dw          #0
+0089 ---- 0000                         dw          #0
+               adcLevelTrigger/state:
+               adcLevelTrigger/state/high:
+008a ---- 0000                         dw          #0
+               .segment end "Task: adc level trigger"
+
+
+               .segment begin "Task: adc level trigger"
+               adcLevelTrigger/initialize:
+               ;? // Select ADC input
+               ;? output.adcVal0 =0;
+008b ---- 0000                         ld          R0, #0
+008c ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? // Schedule the first execution
+               ;? //fwScheduleTask(1);
+               adcLevelTrigger/initializeDone:
+008d ---- adb7                         rts
+
+
+
+
+               adcLevelTrigger/execute:
+               ;? // Enable the ADC
+               ;? fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+008e ---- 70a0                         ld          R7, #(((850 * 24 ) + ((1 << 7) - 1)) >> 7)
+008f ---- 6007                         ld          R6, #7
+0090 ---- 173d                         jsr         FwDelay
+               ;?
+               ;? //Select CHAN 0
+               ;? gpioClearOutput(AUXIO_O_S0);
+0091 ---- 560e                         iobclr      #(6 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (6 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S1);
+0092 ---- 550e                         iobclr      #(5 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (5 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S2);
+0093 ---- 540e                         iobclr      #(4 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (4 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S3);
+0094 ---- 470e                         iobclr      #(3 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (3 >> 3))]
+               ;? adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+0095 ---- f502                         loop        #128, /id0143
+0096 ---- fd47                         nop
+0097 ---- fd47                         nop
+0098 ---- fd47                         nop
+               /id0143:
+0099 ---- 7001                         ld          R7, #((0 | (((15 < 6) & (!0)) * ADI16_ADCREF_REF_ON_IDLE)) | ADI16_ADCREF_EN)
+009a ---- 1462                         jsr         AdiDdiAcquire
+009b ---- fb4d                         out         R7, [#IOP_ADISET_ADCREF]
+009c 8609 7101                         ld          R7, #((9 << IOB_ANAIF_ADCCTL_START_SRC) | 0x0001)
+009e ---- 6431                         iobset      #IOB_WUC_ADCCLKCTL_REQ, [#IOP_WUC_ADCCLKCTL]
+               /id0144:
+009f ---- 2531                         iobtst      #IOB_WUC_ADCCLKCTL_ACK, [#IOP_WUC_ADCCLKCTL]
+00a0 ---- a6fe                         biob0       /id0144
+00a1 ---- fb00                         out         R7, [#IOP_ANAIF_ADCCTL]
+00a2 ---- 7078                         ld          R7, #BV_ADI16_ADC_SMPL_CYCLE_EXP
+00a3 ---- fb54                         out         R7, [#IOP_ADICLR_ADC]
+00a4 ---- 7078                         ld          R7, #(15 << BI_ADI16_ADC_SMPL_CYCLE_EXP)
+00a5 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+00a6 ---- 7003                         ld          R7, #(ADI16_ADC_EN | ADI16_ADC_RESET_N)
+00a7 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+00a8 ---- fd47                         nop
+00a9 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+00aa ---- 1465                         jsr         AdiDdiRelease
+               ;?
+               ;? adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+00ab ---- 7007                         ld          R7, #7
+00ac ---- 1743                         jsr         AdccompbSelectGpioInput
+               ;? // Sample the analog sensor
+               ;?
+               ;? for(U16 n=0;n<SAMPLE_COUNT;n++){
+00ad ---- 0000                         ld          R0, #0
+               /id0158:
+               ;?     adcGenManualTrigger();
+00ae ---- 6403                             iobset      #0, [#IOP_ANAIF_ADCTRIG]
+               ;?     adcReadFifo(output.adcValues[n]);
+00af ---- 101f                             ld          R1, #EVCTL_SCEEVSEL_ADC_FIFO_NOT_EMPTY
+00b0 ---- 9b2c                             out         R1, [#IOP_EVCTL_SCEWEVSEL]
+00b1 ---- fdb1                             wev1        #WEVSEL_PROG
+00b2 ---- 9902                             in          R1, [#IOP_ANAIF_ADCFIFO]
+00b3 ---- 2082                             ld          R2, #(adcLevelTrigger/output/adcValues + 0)
+00b4 ---- 9f3a                             st          R1, [R2+R0]
+               ;?     output.adcVal0 +=output.adcValues[n];
+00b5 ---- 1082                             ld          R1, #(adcLevelTrigger/output/adcValues + 0)
+00b6 ---- af19                             ld          R2, [R1+R0]
+00b7 ---- 1881                             ld          R1, [#adcLevelTrigger/output/adcVal0]
+00b8 ---- 9d22                             add         R1, R2
+00b9 ---- 1c81                             st          R1, [#adcLevelTrigger/output/adcVal0]
+               ;? }
+00ba ---- 8801                         add         R0, #1
+00bb ---- 8a08                         cmp         R0, #8
+00bc ---- aef1                         bltu        /id0158
+               ;? //average by dividing by 8
+               ;? output.adcVal0 >>=3;
+00bd ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+00be ---- 8dab                         lsr         R0, #3
+00bf ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? output.adcBuffer[0]= output.adcVal0;
+00c0 ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+00c1 ---- 0c75                         st          R0, [#(adcLevelTrigger/output/adcBuffer + 0)]
+               ;?
+               ;? adcFlushFifo();
+00c2 ---- 6500                         iobset      #1, [#IOP_ANAIF_ADCCTL]
+00c3 ---- 4500                         iobclr      #1, [#IOP_ANAIF_ADCCTL]
+               ;? // Disable the ADC
+               ;? adcDisable();
+00c4 ---- 1750                         jsr         AdcDisable
+               ;?
+               ;? // Enable the ADC
+               ;? fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+00c5 ---- 70a0                         ld          R7, #(((850 * 24 ) + ((1 << 7) - 1)) >> 7)
+00c6 ---- 6007                         ld          R6, #7
+00c7 ---- 173d                         jsr         FwDelay
+               ;?
+               ;? output.adcVal0 =0;
+00c8 ---- 0000                         ld          R0, #0
+00c9 ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? //Select CHAN 1
+               ;? gpioSetOutput(AUXIO_O_S0);
+00ca ---- 760e                         iobset      #(6 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (6 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S1);
+00cb ---- 550e                         iobclr      #(5 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (5 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S2);
+00cc ---- 540e                         iobclr      #(4 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (4 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S3);
+00cd ---- 470e                         iobclr      #(3 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (3 >> 3))]
+               ;? adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+00ce ---- f502                         loop        #128, /id0166
+00cf ---- fd47                         nop
+00d0 ---- fd47                         nop
+00d1 ---- fd47                         nop
+               /id0166:
+00d2 ---- 7001                         ld          R7, #((0 | (((15 < 6) & (!0)) * ADI16_ADCREF_REF_ON_IDLE)) | ADI16_ADCREF_EN)
+00d3 ---- 1462                         jsr         AdiDdiAcquire
+00d4 ---- fb4d                         out         R7, [#IOP_ADISET_ADCREF]
+00d5 8609 7101                         ld          R7, #((9 << IOB_ANAIF_ADCCTL_START_SRC) | 0x0001)
+00d7 ---- 6431                         iobset      #IOB_WUC_ADCCLKCTL_REQ, [#IOP_WUC_ADCCLKCTL]
+               /id0167:
+00d8 ---- 2531                         iobtst      #IOB_WUC_ADCCLKCTL_ACK, [#IOP_WUC_ADCCLKCTL]
+00d9 ---- a6fe                         biob0       /id0167
+00da ---- fb00                         out         R7, [#IOP_ANAIF_ADCCTL]
+00db ---- 7078                         ld          R7, #BV_ADI16_ADC_SMPL_CYCLE_EXP
+00dc ---- fb54                         out         R7, [#IOP_ADICLR_ADC]
+00dd ---- 7078                         ld          R7, #(15 << BI_ADI16_ADC_SMPL_CYCLE_EXP)
+00de ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+00df ---- 7003                         ld          R7, #(ADI16_ADC_EN | ADI16_ADC_RESET_N)
+00e0 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+00e1 ---- fd47                         nop
+00e2 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+00e3 ---- 1465                         jsr         AdiDdiRelease
+               ;?
+               ;? adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+00e4 ---- 7007                         ld          R7, #7
+00e5 ---- 1743                         jsr         AdccompbSelectGpioInput
+               ;? // Sample the analog sensor
+               ;?
+               ;? for(U16 n=0;n<SAMPLE_COUNT;n++){
+00e6 ---- 0000                         ld          R0, #0
+               /id0181:
+               ;?     adcGenManualTrigger();
+00e7 ---- 6403                             iobset      #0, [#IOP_ANAIF_ADCTRIG]
+               ;?     adcReadFifo(output.adcValues[n]);
+00e8 ---- 101f                             ld          R1, #EVCTL_SCEEVSEL_ADC_FIFO_NOT_EMPTY
+00e9 ---- 9b2c                             out         R1, [#IOP_EVCTL_SCEWEVSEL]
+00ea ---- fdb1                             wev1        #WEVSEL_PROG
+00eb ---- 9902                             in          R1, [#IOP_ANAIF_ADCFIFO]
+00ec ---- 2082                             ld          R2, #(adcLevelTrigger/output/adcValues + 0)
+00ed ---- 9f3a                             st          R1, [R2+R0]
+               ;?     output.adcVal0 +=output.adcValues[n];
+00ee ---- 1082                             ld          R1, #(adcLevelTrigger/output/adcValues + 0)
+00ef ---- af19                             ld          R2, [R1+R0]
+00f0 ---- 1881                             ld          R1, [#adcLevelTrigger/output/adcVal0]
+00f1 ---- 9d22                             add         R1, R2
+00f2 ---- 1c81                             st          R1, [#adcLevelTrigger/output/adcVal0]
+               ;? }
+00f3 ---- 8801                         add         R0, #1
+00f4 ---- 8a08                         cmp         R0, #8
+00f5 ---- aef1                         bltu        /id0181
+               ;? //average by dividing by 8
+               ;? output.adcVal0 >>=3;
+00f6 ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+00f7 ---- 8dab                         lsr         R0, #3
+00f8 ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? output.adcBuffer[1]= output.adcVal0;
+00f9 ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+00fa ---- 0c76                         st          R0, [#(adcLevelTrigger/output/adcBuffer + 1)]
+               ;?
+               ;? adcFlushFifo();
+00fb ---- 6500                         iobset      #1, [#IOP_ANAIF_ADCCTL]
+00fc ---- 4500                         iobclr      #1, [#IOP_ANAIF_ADCCTL]
+               ;? // Disable the ADC
+               ;? adcDisable();
+00fd ---- 1750                         jsr         AdcDisable
+               ;?
+               ;? // Enable the ADC
+               ;? fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+00fe ---- 70a0                         ld          R7, #(((850 * 24 ) + ((1 << 7) - 1)) >> 7)
+00ff ---- 6007                         ld          R6, #7
+0100 ---- 173d                         jsr         FwDelay
+               ;?
+               ;? output.adcVal0 =0;
+0101 ---- 0000                         ld          R0, #0
+0102 ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? //Select CHAN 2
+               ;? gpioClearOutput(AUXIO_O_S0);
+0103 ---- 560e                         iobclr      #(6 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (6 >> 3))]
+               ;? gpioSetOutput(AUXIO_O_S1);
+0104 ---- 750e                         iobset      #(5 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (5 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S2);
+0105 ---- 540e                         iobclr      #(4 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (4 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S3);
+0106 ---- 470e                         iobclr      #(3 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (3 >> 3))]
+               ;? adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+0107 ---- f502                         loop        #128, /id0189
+0108 ---- fd47                         nop
+0109 ---- fd47                         nop
+010a ---- fd47                         nop
+               /id0189:
+010b ---- 7001                         ld          R7, #((0 | (((15 < 6) & (!0)) * ADI16_ADCREF_REF_ON_IDLE)) | ADI16_ADCREF_EN)
+010c ---- 1462                         jsr         AdiDdiAcquire
+010d ---- fb4d                         out         R7, [#IOP_ADISET_ADCREF]
+010e 8609 7101                         ld          R7, #((9 << IOB_ANAIF_ADCCTL_START_SRC) | 0x0001)
+0110 ---- 6431                         iobset      #IOB_WUC_ADCCLKCTL_REQ, [#IOP_WUC_ADCCLKCTL]
+               /id0190:
+0111 ---- 2531                         iobtst      #IOB_WUC_ADCCLKCTL_ACK, [#IOP_WUC_ADCCLKCTL]
+0112 ---- a6fe                         biob0       /id0190
+0113 ---- fb00                         out         R7, [#IOP_ANAIF_ADCCTL]
+0114 ---- 7078                         ld          R7, #BV_ADI16_ADC_SMPL_CYCLE_EXP
+0115 ---- fb54                         out         R7, [#IOP_ADICLR_ADC]
+0116 ---- 7078                         ld          R7, #(15 << BI_ADI16_ADC_SMPL_CYCLE_EXP)
+0117 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+0118 ---- 7003                         ld          R7, #(ADI16_ADC_EN | ADI16_ADC_RESET_N)
+0119 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+011a ---- fd47                         nop
+011b ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+011c ---- 1465                         jsr         AdiDdiRelease
+               ;?
+               ;? adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+011d ---- 7007                         ld          R7, #7
+011e ---- 1743                         jsr         AdccompbSelectGpioInput
+               ;? // Sample the analog sensor
+               ;?
+               ;? for(U16 n=0;n<SAMPLE_COUNT;n++){
+011f ---- 0000                         ld          R0, #0
+               /id0204:
+               ;?     adcGenManualTrigger();
+0120 ---- 6403                             iobset      #0, [#IOP_ANAIF_ADCTRIG]
+               ;?     adcReadFifo(output.adcValues[n]);
+0121 ---- 101f                             ld          R1, #EVCTL_SCEEVSEL_ADC_FIFO_NOT_EMPTY
+0122 ---- 9b2c                             out         R1, [#IOP_EVCTL_SCEWEVSEL]
+0123 ---- fdb1                             wev1        #WEVSEL_PROG
+0124 ---- 9902                             in          R1, [#IOP_ANAIF_ADCFIFO]
+0125 ---- 2082                             ld          R2, #(adcLevelTrigger/output/adcValues + 0)
+0126 ---- 9f3a                             st          R1, [R2+R0]
+               ;?     output.adcVal0 +=output.adcValues[n];
+0127 ---- 1082                             ld          R1, #(adcLevelTrigger/output/adcValues + 0)
+0128 ---- af19                             ld          R2, [R1+R0]
+0129 ---- 1881                             ld          R1, [#adcLevelTrigger/output/adcVal0]
+012a ---- 9d22                             add         R1, R2
+012b ---- 1c81                             st          R1, [#adcLevelTrigger/output/adcVal0]
+               ;? }
+012c ---- 8801                         add         R0, #1
+012d ---- 8a08                         cmp         R0, #8
+012e ---- aef1                         bltu        /id0204
+               ;? //average by dividing by 8
+               ;? output.adcVal0 >>=3;
+012f ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+0130 ---- 8dab                         lsr         R0, #3
+0131 ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? output.adcBuffer[2]= output.adcVal0;
+0132 ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+0133 ---- 0c77                         st          R0, [#(adcLevelTrigger/output/adcBuffer + 2)]
+               ;?
+               ;? adcFlushFifo();
+0134 ---- 6500                         iobset      #1, [#IOP_ANAIF_ADCCTL]
+0135 ---- 4500                         iobclr      #1, [#IOP_ANAIF_ADCCTL]
+               ;? // Disable the ADC
+               ;? adcDisable();
+0136 ---- 1750                         jsr         AdcDisable
+               ;?
+               ;? // Enable the ADC
+               ;? fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+0137 ---- 70a0                         ld          R7, #(((850 * 24 ) + ((1 << 7) - 1)) >> 7)
+0138 ---- 6007                         ld          R6, #7
+0139 ---- 173d                         jsr         FwDelay
+               ;?
+               ;? output.adcVal0 =0;
+013a ---- 0000                         ld          R0, #0
+013b ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? //Select CHAN 3
+               ;? gpioSetOutput(AUXIO_O_S0);
+013c ---- 760e                         iobset      #(6 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (6 >> 3))]
+               ;? gpioSetOutput(AUXIO_O_S1);
+013d ---- 750e                         iobset      #(5 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (5 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S2);
+013e ---- 540e                         iobclr      #(4 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (4 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S3);
+013f ---- 470e                         iobclr      #(3 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (3 >> 3))]
+               ;? adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+0140 ---- f502                         loop        #128, /id0212
+0141 ---- fd47                         nop
+0142 ---- fd47                         nop
+0143 ---- fd47                         nop
+               /id0212:
+0144 ---- 7001                         ld          R7, #((0 | (((15 < 6) & (!0)) * ADI16_ADCREF_REF_ON_IDLE)) | ADI16_ADCREF_EN)
+0145 ---- 1462                         jsr         AdiDdiAcquire
+0146 ---- fb4d                         out         R7, [#IOP_ADISET_ADCREF]
+0147 8609 7101                         ld          R7, #((9 << IOB_ANAIF_ADCCTL_START_SRC) | 0x0001)
+0149 ---- 6431                         iobset      #IOB_WUC_ADCCLKCTL_REQ, [#IOP_WUC_ADCCLKCTL]
+               /id0213:
+014a ---- 2531                         iobtst      #IOB_WUC_ADCCLKCTL_ACK, [#IOP_WUC_ADCCLKCTL]
+014b ---- a6fe                         biob0       /id0213
+014c ---- fb00                         out         R7, [#IOP_ANAIF_ADCCTL]
+014d ---- 7078                         ld          R7, #BV_ADI16_ADC_SMPL_CYCLE_EXP
+014e ---- fb54                         out         R7, [#IOP_ADICLR_ADC]
+014f ---- 7078                         ld          R7, #(15 << BI_ADI16_ADC_SMPL_CYCLE_EXP)
+0150 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+0151 ---- 7003                         ld          R7, #(ADI16_ADC_EN | ADI16_ADC_RESET_N)
+0152 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+0153 ---- fd47                         nop
+0154 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+0155 ---- 1465                         jsr         AdiDdiRelease
+               ;?
+               ;? adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+0156 ---- 7007                         ld          R7, #7
+0157 ---- 1743                         jsr         AdccompbSelectGpioInput
+               ;? // Sample the analog sensor
+               ;?
+               ;? for(U16 n=0;n<SAMPLE_COUNT;n++){
+0158 ---- 0000                         ld          R0, #0
+               /id0227:
+               ;?     adcGenManualTrigger();
+0159 ---- 6403                             iobset      #0, [#IOP_ANAIF_ADCTRIG]
+               ;?     adcReadFifo(output.adcValues[n]);
+015a ---- 101f                             ld          R1, #EVCTL_SCEEVSEL_ADC_FIFO_NOT_EMPTY
+015b ---- 9b2c                             out         R1, [#IOP_EVCTL_SCEWEVSEL]
+015c ---- fdb1                             wev1        #WEVSEL_PROG
+015d ---- 9902                             in          R1, [#IOP_ANAIF_ADCFIFO]
+015e ---- 2082                             ld          R2, #(adcLevelTrigger/output/adcValues + 0)
+015f ---- 9f3a                             st          R1, [R2+R0]
+               ;?     output.adcVal0 +=output.adcValues[n];
+0160 ---- 1082                             ld          R1, #(adcLevelTrigger/output/adcValues + 0)
+0161 ---- af19                             ld          R2, [R1+R0]
+0162 ---- 1881                             ld          R1, [#adcLevelTrigger/output/adcVal0]
+0163 ---- 9d22                             add         R1, R2
+0164 ---- 1c81                             st          R1, [#adcLevelTrigger/output/adcVal0]
+               ;? }
+0165 ---- 8801                         add         R0, #1
+0166 ---- 8a08                         cmp         R0, #8
+0167 ---- aef1                         bltu        /id0227
+               ;? //average by dividing by 8
+               ;? output.adcVal0 >>=3;
+0168 ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+0169 ---- 8dab                         lsr         R0, #3
+016a ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? output.adcBuffer[3]= output.adcVal0;
+016b ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+016c ---- 0c78                         st          R0, [#(adcLevelTrigger/output/adcBuffer + 3)]
+               ;?
+               ;? adcFlushFifo();
+016d ---- 6500                         iobset      #1, [#IOP_ANAIF_ADCCTL]
+016e ---- 4500                         iobclr      #1, [#IOP_ANAIF_ADCCTL]
+               ;? // Disable the ADC
+               ;? adcDisable();
+016f ---- 1750                         jsr         AdcDisable
+               ;?
+               ;? // Enable the ADC
+               ;? fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+0170 ---- 70a0                         ld          R7, #(((850 * 24 ) + ((1 << 7) - 1)) >> 7)
+0171 ---- 6007                         ld          R6, #7
+0172 ---- 173d                         jsr         FwDelay
+               ;?
+               ;? output.adcVal0 =0;
+0173 ---- 0000                         ld          R0, #0
+0174 ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? //Select CHAN 4
+               ;? gpioClearOutput(AUXIO_O_S0);
+0175 ---- 560e                         iobclr      #(6 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (6 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S1);
+0176 ---- 550e                         iobclr      #(5 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (5 >> 3))]
+               ;? gpioSetOutput(AUXIO_O_S2);
+0177 ---- 740e                         iobset      #(4 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (4 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S3);
+0178 ---- 470e                         iobclr      #(3 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (3 >> 3))]
+               ;? adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+0179 ---- f502                         loop        #128, /id0235
+017a ---- fd47                         nop
+017b ---- fd47                         nop
+017c ---- fd47                         nop
+               /id0235:
+017d ---- 7001                         ld          R7, #((0 | (((15 < 6) & (!0)) * ADI16_ADCREF_REF_ON_IDLE)) | ADI16_ADCREF_EN)
+017e ---- 1462                         jsr         AdiDdiAcquire
+017f ---- fb4d                         out         R7, [#IOP_ADISET_ADCREF]
+0180 8609 7101                         ld          R7, #((9 << IOB_ANAIF_ADCCTL_START_SRC) | 0x0001)
+0182 ---- 6431                         iobset      #IOB_WUC_ADCCLKCTL_REQ, [#IOP_WUC_ADCCLKCTL]
+               /id0236:
+0183 ---- 2531                         iobtst      #IOB_WUC_ADCCLKCTL_ACK, [#IOP_WUC_ADCCLKCTL]
+0184 ---- a6fe                         biob0       /id0236
+0185 ---- fb00                         out         R7, [#IOP_ANAIF_ADCCTL]
+0186 ---- 7078                         ld          R7, #BV_ADI16_ADC_SMPL_CYCLE_EXP
+0187 ---- fb54                         out         R7, [#IOP_ADICLR_ADC]
+0188 ---- 7078                         ld          R7, #(15 << BI_ADI16_ADC_SMPL_CYCLE_EXP)
+0189 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+018a ---- 7003                         ld          R7, #(ADI16_ADC_EN | ADI16_ADC_RESET_N)
+018b ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+018c ---- fd47                         nop
+018d ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+018e ---- 1465                         jsr         AdiDdiRelease
+               ;?
+               ;? adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+018f ---- 7007                         ld          R7, #7
+0190 ---- 1743                         jsr         AdccompbSelectGpioInput
+               ;? // Sample the analog sensor
+               ;?
+               ;? for(U16 n=0;n<SAMPLE_COUNT;n++){
+0191 ---- 0000                         ld          R0, #0
+               /id0250:
+               ;?     adcGenManualTrigger();
+0192 ---- 6403                             iobset      #0, [#IOP_ANAIF_ADCTRIG]
+               ;?     adcReadFifo(output.adcValues[n]);
+0193 ---- 101f                             ld          R1, #EVCTL_SCEEVSEL_ADC_FIFO_NOT_EMPTY
+0194 ---- 9b2c                             out         R1, [#IOP_EVCTL_SCEWEVSEL]
+0195 ---- fdb1                             wev1        #WEVSEL_PROG
+0196 ---- 9902                             in          R1, [#IOP_ANAIF_ADCFIFO]
+0197 ---- 2082                             ld          R2, #(adcLevelTrigger/output/adcValues + 0)
+0198 ---- 9f3a                             st          R1, [R2+R0]
+               ;?     output.adcVal0 +=output.adcValues[n];
+0199 ---- 1082                             ld          R1, #(adcLevelTrigger/output/adcValues + 0)
+019a ---- af19                             ld          R2, [R1+R0]
+019b ---- 1881                             ld          R1, [#adcLevelTrigger/output/adcVal0]
+019c ---- 9d22                             add         R1, R2
+019d ---- 1c81                             st          R1, [#adcLevelTrigger/output/adcVal0]
+               ;? }
+019e ---- 8801                         add         R0, #1
+019f ---- 8a08                         cmp         R0, #8
+01a0 ---- aef1                         bltu        /id0250
+               ;? //average by dividing by 8
+               ;? output.adcVal0 >>=3;
+01a1 ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+01a2 ---- 8dab                         lsr         R0, #3
+01a3 ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? output.adcBuffer[4]= output.adcVal0;
+01a4 ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+01a5 ---- 0c79                         st          R0, [#(adcLevelTrigger/output/adcBuffer + 4)]
+               ;?
+               ;? adcFlushFifo();
+01a6 ---- 6500                         iobset      #1, [#IOP_ANAIF_ADCCTL]
+01a7 ---- 4500                         iobclr      #1, [#IOP_ANAIF_ADCCTL]
+               ;? // Disable the ADC
+               ;? adcDisable();
+01a8 ---- 1750                         jsr         AdcDisable
+               ;?
+               ;? // Enable the ADC
+               ;? fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+01a9 ---- 70a0                         ld          R7, #(((850 * 24 ) + ((1 << 7) - 1)) >> 7)
+01aa ---- 6007                         ld          R6, #7
+01ab ---- 173d                         jsr         FwDelay
+               ;?
+               ;? output.adcVal0 =0;
+01ac ---- 0000                         ld          R0, #0
+01ad ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? //Select CHAN 5
+               ;? gpioSetOutput(AUXIO_O_S0);
+01ae ---- 760e                         iobset      #(6 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (6 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S1);
+01af ---- 550e                         iobclr      #(5 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (5 >> 3))]
+               ;? gpioSetOutput(AUXIO_O_S2);
+01b0 ---- 740e                         iobset      #(4 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (4 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S3);
+01b1 ---- 470e                         iobclr      #(3 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (3 >> 3))]
+               ;? adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+01b2 ---- f502                         loop        #128, /id0258
+01b3 ---- fd47                         nop
+01b4 ---- fd47                         nop
+01b5 ---- fd47                         nop
+               /id0258:
+01b6 ---- 7001                         ld          R7, #((0 | (((15 < 6) & (!0)) * ADI16_ADCREF_REF_ON_IDLE)) | ADI16_ADCREF_EN)
+01b7 ---- 1462                         jsr         AdiDdiAcquire
+01b8 ---- fb4d                         out         R7, [#IOP_ADISET_ADCREF]
+01b9 8609 7101                         ld          R7, #((9 << IOB_ANAIF_ADCCTL_START_SRC) | 0x0001)
+01bb ---- 6431                         iobset      #IOB_WUC_ADCCLKCTL_REQ, [#IOP_WUC_ADCCLKCTL]
+               /id0259:
+01bc ---- 2531                         iobtst      #IOB_WUC_ADCCLKCTL_ACK, [#IOP_WUC_ADCCLKCTL]
+01bd ---- a6fe                         biob0       /id0259
+01be ---- fb00                         out         R7, [#IOP_ANAIF_ADCCTL]
+01bf ---- 7078                         ld          R7, #BV_ADI16_ADC_SMPL_CYCLE_EXP
+01c0 ---- fb54                         out         R7, [#IOP_ADICLR_ADC]
+01c1 ---- 7078                         ld          R7, #(15 << BI_ADI16_ADC_SMPL_CYCLE_EXP)
+01c2 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+01c3 ---- 7003                         ld          R7, #(ADI16_ADC_EN | ADI16_ADC_RESET_N)
+01c4 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+01c5 ---- fd47                         nop
+01c6 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+01c7 ---- 1465                         jsr         AdiDdiRelease
+               ;?
+               ;? adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+01c8 ---- 7007                         ld          R7, #7
+01c9 ---- 1743                         jsr         AdccompbSelectGpioInput
+               ;? // Sample the analog sensor
+               ;?
+               ;? for(U16 n=0;n<SAMPLE_COUNT;n++){
+01ca ---- 0000                         ld          R0, #0
+               /id0273:
+               ;?     adcGenManualTrigger();
+01cb ---- 6403                             iobset      #0, [#IOP_ANAIF_ADCTRIG]
+               ;?     adcReadFifo(output.adcValues[n]);
+01cc ---- 101f                             ld          R1, #EVCTL_SCEEVSEL_ADC_FIFO_NOT_EMPTY
+01cd ---- 9b2c                             out         R1, [#IOP_EVCTL_SCEWEVSEL]
+01ce ---- fdb1                             wev1        #WEVSEL_PROG
+01cf ---- 9902                             in          R1, [#IOP_ANAIF_ADCFIFO]
+01d0 ---- 2082                             ld          R2, #(adcLevelTrigger/output/adcValues + 0)
+01d1 ---- 9f3a                             st          R1, [R2+R0]
+               ;?     output.adcVal0 +=output.adcValues[n];
+01d2 ---- 1082                             ld          R1, #(adcLevelTrigger/output/adcValues + 0)
+01d3 ---- af19                             ld          R2, [R1+R0]
+01d4 ---- 1881                             ld          R1, [#adcLevelTrigger/output/adcVal0]
+01d5 ---- 9d22                             add         R1, R2
+01d6 ---- 1c81                             st          R1, [#adcLevelTrigger/output/adcVal0]
+               ;? }
+01d7 ---- 8801                         add         R0, #1
+01d8 ---- 8a08                         cmp         R0, #8
+01d9 ---- aef1                         bltu        /id0273
+               ;? //average by dividing by 8
+               ;? output.adcVal0 >>=3;
+01da ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+01db ---- 8dab                         lsr         R0, #3
+01dc ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? output.adcBuffer[5]= output.adcVal0;
+01dd ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+01de ---- 0c7a                         st          R0, [#(adcLevelTrigger/output/adcBuffer + 5)]
+               ;?
+               ;? adcFlushFifo();
+01df ---- 6500                         iobset      #1, [#IOP_ANAIF_ADCCTL]
+01e0 ---- 4500                         iobclr      #1, [#IOP_ANAIF_ADCCTL]
+               ;? // Disable the ADC
+               ;? adcDisable();
+01e1 ---- 1750                         jsr         AdcDisable
+               ;?
+               ;? // Enable the ADC
+               ;? fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+01e2 ---- 70a0                         ld          R7, #(((850 * 24 ) + ((1 << 7) - 1)) >> 7)
+01e3 ---- 6007                         ld          R6, #7
+01e4 ---- 173d                         jsr         FwDelay
+               ;?
+               ;? output.adcVal0 =0;
+01e5 ---- 0000                         ld          R0, #0
+01e6 ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? //Select CHAN 6
+               ;? gpioClearOutput(AUXIO_O_S0);
+01e7 ---- 560e                         iobclr      #(6 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (6 >> 3))]
+               ;? gpioSetOutput(AUXIO_O_S1);
+01e8 ---- 750e                         iobset      #(5 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (5 >> 3))]
+               ;? gpioSetOutput(AUXIO_O_S2);
+01e9 ---- 740e                         iobset      #(4 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (4 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S3);
+01ea ---- 470e                         iobclr      #(3 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (3 >> 3))]
+               ;? adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+01eb ---- f502                         loop        #128, /id0281
+01ec ---- fd47                         nop
+01ed ---- fd47                         nop
+01ee ---- fd47                         nop
+               /id0281:
+01ef ---- 7001                         ld          R7, #((0 | (((15 < 6) & (!0)) * ADI16_ADCREF_REF_ON_IDLE)) | ADI16_ADCREF_EN)
+01f0 ---- 1462                         jsr         AdiDdiAcquire
+01f1 ---- fb4d                         out         R7, [#IOP_ADISET_ADCREF]
+01f2 8609 7101                         ld          R7, #((9 << IOB_ANAIF_ADCCTL_START_SRC) | 0x0001)
+01f4 ---- 6431                         iobset      #IOB_WUC_ADCCLKCTL_REQ, [#IOP_WUC_ADCCLKCTL]
+               /id0282:
+01f5 ---- 2531                         iobtst      #IOB_WUC_ADCCLKCTL_ACK, [#IOP_WUC_ADCCLKCTL]
+01f6 ---- a6fe                         biob0       /id0282
+01f7 ---- fb00                         out         R7, [#IOP_ANAIF_ADCCTL]
+01f8 ---- 7078                         ld          R7, #BV_ADI16_ADC_SMPL_CYCLE_EXP
+01f9 ---- fb54                         out         R7, [#IOP_ADICLR_ADC]
+01fa ---- 7078                         ld          R7, #(15 << BI_ADI16_ADC_SMPL_CYCLE_EXP)
+01fb ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+01fc ---- 7003                         ld          R7, #(ADI16_ADC_EN | ADI16_ADC_RESET_N)
+01fd ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+01fe ---- fd47                         nop
+01ff ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+0200 ---- 1465                         jsr         AdiDdiRelease
+               ;?
+               ;? adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+0201 ---- 7007                         ld          R7, #7
+0202 ---- 1743                         jsr         AdccompbSelectGpioInput
+               ;? // Sample the analog sensor
+               ;?
+               ;? for(U16 n=0;n<SAMPLE_COUNT;n++){
+0203 ---- 0000                         ld          R0, #0
+               /id0296:
+               ;?     adcGenManualTrigger();
+0204 ---- 6403                             iobset      #0, [#IOP_ANAIF_ADCTRIG]
+               ;?     adcReadFifo(output.adcValues[n]);
+0205 ---- 101f                             ld          R1, #EVCTL_SCEEVSEL_ADC_FIFO_NOT_EMPTY
+0206 ---- 9b2c                             out         R1, [#IOP_EVCTL_SCEWEVSEL]
+0207 ---- fdb1                             wev1        #WEVSEL_PROG
+0208 ---- 9902                             in          R1, [#IOP_ANAIF_ADCFIFO]
+0209 ---- 2082                             ld          R2, #(adcLevelTrigger/output/adcValues + 0)
+020a ---- 9f3a                             st          R1, [R2+R0]
+               ;?     output.adcVal0 +=output.adcValues[n];
+020b ---- 1082                             ld          R1, #(adcLevelTrigger/output/adcValues + 0)
+020c ---- af19                             ld          R2, [R1+R0]
+020d ---- 1881                             ld          R1, [#adcLevelTrigger/output/adcVal0]
+020e ---- 9d22                             add         R1, R2
+020f ---- 1c81                             st          R1, [#adcLevelTrigger/output/adcVal0]
+               ;? }
+0210 ---- 8801                         add         R0, #1
+0211 ---- 8a08                         cmp         R0, #8
+0212 ---- aef1                         bltu        /id0296
+               ;? //average by dividing by 8
+               ;? output.adcVal0 >>=3;
+0213 ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+0214 ---- 8dab                         lsr         R0, #3
+0215 ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? output.adcBuffer[6]= output.adcVal0;
+0216 ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+0217 ---- 0c7b                         st          R0, [#(adcLevelTrigger/output/adcBuffer + 6)]
+               ;?
+               ;? adcFlushFifo();
+0218 ---- 6500                         iobset      #1, [#IOP_ANAIF_ADCCTL]
+0219 ---- 4500                         iobclr      #1, [#IOP_ANAIF_ADCCTL]
+               ;? // Disable the ADC
+               ;? adcDisable();
+021a ---- 1750                         jsr         AdcDisable
+               ;?
+               ;? // Enable the ADC
+               ;? fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+021b ---- 70a0                         ld          R7, #(((850 * 24 ) + ((1 << 7) - 1)) >> 7)
+021c ---- 6007                         ld          R6, #7
+021d ---- 173d                         jsr         FwDelay
+               ;?
+               ;? output.adcVal0 =0;
+021e ---- 0000                         ld          R0, #0
+021f ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? //Select CHAN 7
+               ;? gpioSetOutput(AUXIO_O_S0);
+0220 ---- 760e                         iobset      #(6 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (6 >> 3))]
+               ;? gpioSetOutput(AUXIO_O_S1);
+0221 ---- 750e                         iobset      #(5 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (5 >> 3))]
+               ;? gpioSetOutput(AUXIO_O_S2);
+0222 ---- 740e                         iobset      #(4 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (4 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S3);
+0223 ---- 470e                         iobclr      #(3 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (3 >> 3))]
+               ;? adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+0224 ---- f502                         loop        #128, /id0304
+0225 ---- fd47                         nop
+0226 ---- fd47                         nop
+0227 ---- fd47                         nop
+               /id0304:
+0228 ---- 7001                         ld          R7, #((0 | (((15 < 6) & (!0)) * ADI16_ADCREF_REF_ON_IDLE)) | ADI16_ADCREF_EN)
+0229 ---- 1462                         jsr         AdiDdiAcquire
+022a ---- fb4d                         out         R7, [#IOP_ADISET_ADCREF]
+022b 8609 7101                         ld          R7, #((9 << IOB_ANAIF_ADCCTL_START_SRC) | 0x0001)
+022d ---- 6431                         iobset      #IOB_WUC_ADCCLKCTL_REQ, [#IOP_WUC_ADCCLKCTL]
+               /id0305:
+022e ---- 2531                         iobtst      #IOB_WUC_ADCCLKCTL_ACK, [#IOP_WUC_ADCCLKCTL]
+022f ---- a6fe                         biob0       /id0305
+0230 ---- fb00                         out         R7, [#IOP_ANAIF_ADCCTL]
+0231 ---- 7078                         ld          R7, #BV_ADI16_ADC_SMPL_CYCLE_EXP
+0232 ---- fb54                         out         R7, [#IOP_ADICLR_ADC]
+0233 ---- 7078                         ld          R7, #(15 << BI_ADI16_ADC_SMPL_CYCLE_EXP)
+0234 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+0235 ---- 7003                         ld          R7, #(ADI16_ADC_EN | ADI16_ADC_RESET_N)
+0236 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+0237 ---- fd47                         nop
+0238 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+0239 ---- 1465                         jsr         AdiDdiRelease
+               ;?
+               ;? adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+023a ---- 7007                         ld          R7, #7
+023b ---- 1743                         jsr         AdccompbSelectGpioInput
+               ;? // Sample the analog sensor
+               ;?
+               ;? for(U16 n=0;n<SAMPLE_COUNT;n++){
+023c ---- 0000                         ld          R0, #0
+               /id0319:
+               ;?     adcGenManualTrigger();
+023d ---- 6403                             iobset      #0, [#IOP_ANAIF_ADCTRIG]
+               ;?     adcReadFifo(output.adcValues[n]);
+023e ---- 101f                             ld          R1, #EVCTL_SCEEVSEL_ADC_FIFO_NOT_EMPTY
+023f ---- 9b2c                             out         R1, [#IOP_EVCTL_SCEWEVSEL]
+0240 ---- fdb1                             wev1        #WEVSEL_PROG
+0241 ---- 9902                             in          R1, [#IOP_ANAIF_ADCFIFO]
+0242 ---- 2082                             ld          R2, #(adcLevelTrigger/output/adcValues + 0)
+0243 ---- 9f3a                             st          R1, [R2+R0]
+               ;?     output.adcVal0 +=output.adcValues[n];
+0244 ---- 1082                             ld          R1, #(adcLevelTrigger/output/adcValues + 0)
+0245 ---- af19                             ld          R2, [R1+R0]
+0246 ---- 1881                             ld          R1, [#adcLevelTrigger/output/adcVal0]
+0247 ---- 9d22                             add         R1, R2
+0248 ---- 1c81                             st          R1, [#adcLevelTrigger/output/adcVal0]
+               ;? }
+0249 ---- 8801                         add         R0, #1
+024a ---- 8a08                         cmp         R0, #8
+024b ---- aef1                         bltu        /id0319
+               ;? //average by dividing by 8
+               ;? output.adcVal0 >>=3;
+024c ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+024d ---- 8dab                         lsr         R0, #3
+024e ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? output.adcBuffer[7]= output.adcVal0;
+024f ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+0250 ---- 0c7c                         st          R0, [#(adcLevelTrigger/output/adcBuffer + 7)]
+               ;?
+               ;? adcFlushFifo();
+0251 ---- 6500                         iobset      #1, [#IOP_ANAIF_ADCCTL]
+0252 ---- 4500                         iobclr      #1, [#IOP_ANAIF_ADCCTL]
+               ;? // Disable the ADC
+               ;? adcDisable();
+0253 ---- 1750                         jsr         AdcDisable
+               ;?
+               ;? // Enable the ADC
+               ;? fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+0254 ---- 70a0                         ld          R7, #(((850 * 24 ) + ((1 << 7) - 1)) >> 7)
+0255 ---- 6007                         ld          R6, #7
+0256 ---- 173d                         jsr         FwDelay
+               ;?
+               ;? output.adcVal0 =0;
+0257 ---- 0000                         ld          R0, #0
+0258 ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? //Select CHAN 8
+               ;? gpioClearOutput(AUXIO_O_S0);
+0259 ---- 560e                         iobclr      #(6 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (6 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S1);
+025a ---- 550e                         iobclr      #(5 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (5 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S2);
+025b ---- 540e                         iobclr      #(4 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (4 >> 3))]
+               ;? gpioSetOutput(AUXIO_O_S3);
+025c ---- 670e                         iobset      #(3 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (3 >> 3))]
+               ;? adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+025d ---- f502                         loop        #128, /id0327
+025e ---- fd47                         nop
+025f ---- fd47                         nop
+0260 ---- fd47                         nop
+               /id0327:
+0261 ---- 7001                         ld          R7, #((0 | (((15 < 6) & (!0)) * ADI16_ADCREF_REF_ON_IDLE)) | ADI16_ADCREF_EN)
+0262 ---- 1462                         jsr         AdiDdiAcquire
+0263 ---- fb4d                         out         R7, [#IOP_ADISET_ADCREF]
+0264 8609 7101                         ld          R7, #((9 << IOB_ANAIF_ADCCTL_START_SRC) | 0x0001)
+0266 ---- 6431                         iobset      #IOB_WUC_ADCCLKCTL_REQ, [#IOP_WUC_ADCCLKCTL]
+               /id0328:
+0267 ---- 2531                         iobtst      #IOB_WUC_ADCCLKCTL_ACK, [#IOP_WUC_ADCCLKCTL]
+0268 ---- a6fe                         biob0       /id0328
+0269 ---- fb00                         out         R7, [#IOP_ANAIF_ADCCTL]
+026a ---- 7078                         ld          R7, #BV_ADI16_ADC_SMPL_CYCLE_EXP
+026b ---- fb54                         out         R7, [#IOP_ADICLR_ADC]
+026c ---- 7078                         ld          R7, #(15 << BI_ADI16_ADC_SMPL_CYCLE_EXP)
+026d ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+026e ---- 7003                         ld          R7, #(ADI16_ADC_EN | ADI16_ADC_RESET_N)
+026f ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+0270 ---- fd47                         nop
+0271 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+0272 ---- 1465                         jsr         AdiDdiRelease
+               ;?
+               ;? adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+0273 ---- 7007                         ld          R7, #7
+0274 ---- 1743                         jsr         AdccompbSelectGpioInput
+               ;? // Sample the analog sensor
+               ;?
+               ;? for(U16 n=0;n<SAMPLE_COUNT;n++){
+0275 ---- 0000                         ld          R0, #0
+               /id0342:
+               ;?     adcGenManualTrigger();
+0276 ---- 6403                             iobset      #0, [#IOP_ANAIF_ADCTRIG]
+               ;?     adcReadFifo(output.adcValues[n]);
+0277 ---- 101f                             ld          R1, #EVCTL_SCEEVSEL_ADC_FIFO_NOT_EMPTY
+0278 ---- 9b2c                             out         R1, [#IOP_EVCTL_SCEWEVSEL]
+0279 ---- fdb1                             wev1        #WEVSEL_PROG
+027a ---- 9902                             in          R1, [#IOP_ANAIF_ADCFIFO]
+027b ---- 2082                             ld          R2, #(adcLevelTrigger/output/adcValues + 0)
+027c ---- 9f3a                             st          R1, [R2+R0]
+               ;?     output.adcVal0 +=output.adcValues[n];
+027d ---- 1082                             ld          R1, #(adcLevelTrigger/output/adcValues + 0)
+027e ---- af19                             ld          R2, [R1+R0]
+027f ---- 1881                             ld          R1, [#adcLevelTrigger/output/adcVal0]
+0280 ---- 9d22                             add         R1, R2
+0281 ---- 1c81                             st          R1, [#adcLevelTrigger/output/adcVal0]
+               ;? }
+0282 ---- 8801                         add         R0, #1
+0283 ---- 8a08                         cmp         R0, #8
+0284 ---- aef1                         bltu        /id0342
+               ;? //average by dividing by 8
+               ;? output.adcVal0 >>=3;
+0285 ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+0286 ---- 8dab                         lsr         R0, #3
+0287 ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? output.adcBuffer[8]= output.adcVal0;
+0288 ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+0289 ---- 0c7d                         st          R0, [#(adcLevelTrigger/output/adcBuffer + 8)]
+               ;?
+               ;? adcFlushFifo();
+028a ---- 6500                         iobset      #1, [#IOP_ANAIF_ADCCTL]
+028b ---- 4500                         iobclr      #1, [#IOP_ANAIF_ADCCTL]
+               ;? // Disable the ADC
+               ;? adcDisable();
+028c ---- 1750                         jsr         AdcDisable
+               ;?
+               ;? // Enable the ADC
+               ;? fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+028d ---- 70a0                         ld          R7, #(((850 * 24 ) + ((1 << 7) - 1)) >> 7)
+028e ---- 6007                         ld          R6, #7
+028f ---- 173d                         jsr         FwDelay
+               ;?
+               ;? output.adcVal0 =0;
+0290 ---- 0000                         ld          R0, #0
+0291 ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? //Select CHAN 9
+               ;? gpioSetOutput(AUXIO_O_S0);
+0292 ---- 760e                         iobset      #(6 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (6 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S1);
+0293 ---- 550e                         iobclr      #(5 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (5 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S2);
+0294 ---- 540e                         iobclr      #(4 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (4 >> 3))]
+               ;? gpioSetOutput(AUXIO_O_S3);
+0295 ---- 670e                         iobset      #(3 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (3 >> 3))]
+               ;? adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+0296 ---- f502                         loop        #128, /id0350
+0297 ---- fd47                         nop
+0298 ---- fd47                         nop
+0299 ---- fd47                         nop
+               /id0350:
+029a ---- 7001                         ld          R7, #((0 | (((15 < 6) & (!0)) * ADI16_ADCREF_REF_ON_IDLE)) | ADI16_ADCREF_EN)
+029b ---- 1462                         jsr         AdiDdiAcquire
+029c ---- fb4d                         out         R7, [#IOP_ADISET_ADCREF]
+029d 8609 7101                         ld          R7, #((9 << IOB_ANAIF_ADCCTL_START_SRC) | 0x0001)
+029f ---- 6431                         iobset      #IOB_WUC_ADCCLKCTL_REQ, [#IOP_WUC_ADCCLKCTL]
+               /id0351:
+02a0 ---- 2531                         iobtst      #IOB_WUC_ADCCLKCTL_ACK, [#IOP_WUC_ADCCLKCTL]
+02a1 ---- a6fe                         biob0       /id0351
+02a2 ---- fb00                         out         R7, [#IOP_ANAIF_ADCCTL]
+02a3 ---- 7078                         ld          R7, #BV_ADI16_ADC_SMPL_CYCLE_EXP
+02a4 ---- fb54                         out         R7, [#IOP_ADICLR_ADC]
+02a5 ---- 7078                         ld          R7, #(15 << BI_ADI16_ADC_SMPL_CYCLE_EXP)
+02a6 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+02a7 ---- 7003                         ld          R7, #(ADI16_ADC_EN | ADI16_ADC_RESET_N)
+02a8 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+02a9 ---- fd47                         nop
+02aa ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+02ab ---- 1465                         jsr         AdiDdiRelease
+               ;?
+               ;? adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+02ac ---- 7007                         ld          R7, #7
+02ad ---- 1743                         jsr         AdccompbSelectGpioInput
+               ;? // Sample the analog sensor
+               ;?
+               ;? for(U16 n=0;n<SAMPLE_COUNT;n++){
+02ae ---- 0000                         ld          R0, #0
+               /id0365:
+               ;?     adcGenManualTrigger();
+02af ---- 6403                             iobset      #0, [#IOP_ANAIF_ADCTRIG]
+               ;?     adcReadFifo(output.adcValues[n]);
+02b0 ---- 101f                             ld          R1, #EVCTL_SCEEVSEL_ADC_FIFO_NOT_EMPTY
+02b1 ---- 9b2c                             out         R1, [#IOP_EVCTL_SCEWEVSEL]
+02b2 ---- fdb1                             wev1        #WEVSEL_PROG
+02b3 ---- 9902                             in          R1, [#IOP_ANAIF_ADCFIFO]
+02b4 ---- 2082                             ld          R2, #(adcLevelTrigger/output/adcValues + 0)
+02b5 ---- 9f3a                             st          R1, [R2+R0]
+               ;?     output.adcVal0 +=output.adcValues[n];
+02b6 ---- 1082                             ld          R1, #(adcLevelTrigger/output/adcValues + 0)
+02b7 ---- af19                             ld          R2, [R1+R0]
+02b8 ---- 1881                             ld          R1, [#adcLevelTrigger/output/adcVal0]
+02b9 ---- 9d22                             add         R1, R2
+02ba ---- 1c81                             st          R1, [#adcLevelTrigger/output/adcVal0]
+               ;? }
+02bb ---- 8801                         add         R0, #1
+02bc ---- 8a08                         cmp         R0, #8
+02bd ---- aef1                         bltu        /id0365
+               ;? //average by dividing by 8
+               ;? output.adcVal0 >>=3;
+02be ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+02bf ---- 8dab                         lsr         R0, #3
+02c0 ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? output.adcBuffer[9]= output.adcVal0;
+02c1 ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+02c2 ---- 0c7e                         st          R0, [#(adcLevelTrigger/output/adcBuffer + 9)]
+               ;?
+               ;? adcFlushFifo();
+02c3 ---- 6500                         iobset      #1, [#IOP_ANAIF_ADCCTL]
+02c4 ---- 4500                         iobclr      #1, [#IOP_ANAIF_ADCCTL]
+               ;? // Disable the ADC
+               ;? adcDisable();
+02c5 ---- 1750                         jsr         AdcDisable
+               ;?
+               ;? // Enable the ADC
+               ;? fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+02c6 ---- 70a0                         ld          R7, #(((850 * 24 ) + ((1 << 7) - 1)) >> 7)
+02c7 ---- 6007                         ld          R6, #7
+02c8 ---- 173d                         jsr         FwDelay
+               ;?
+               ;? output.adcVal0 =0;
+02c9 ---- 0000                         ld          R0, #0
+02ca ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? //Select CHAN 10
+               ;? gpioClearOutput(AUXIO_O_S0);
+02cb ---- 560e                         iobclr      #(6 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (6 >> 3))]
+               ;? gpioSetOutput(AUXIO_O_S1);
+02cc ---- 750e                         iobset      #(5 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (5 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S2);
+02cd ---- 540e                         iobclr      #(4 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (4 >> 3))]
+               ;? gpioSetOutput(AUXIO_O_S3);
+02ce ---- 670e                         iobset      #(3 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (3 >> 3))]
+               ;? adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+02cf ---- f502                         loop        #128, /id0373
+02d0 ---- fd47                         nop
+02d1 ---- fd47                         nop
+02d2 ---- fd47                         nop
+               /id0373:
+02d3 ---- 7001                         ld          R7, #((0 | (((15 < 6) & (!0)) * ADI16_ADCREF_REF_ON_IDLE)) | ADI16_ADCREF_EN)
+02d4 ---- 1462                         jsr         AdiDdiAcquire
+02d5 ---- fb4d                         out         R7, [#IOP_ADISET_ADCREF]
+02d6 8609 7101                         ld          R7, #((9 << IOB_ANAIF_ADCCTL_START_SRC) | 0x0001)
+02d8 ---- 6431                         iobset      #IOB_WUC_ADCCLKCTL_REQ, [#IOP_WUC_ADCCLKCTL]
+               /id0374:
+02d9 ---- 2531                         iobtst      #IOB_WUC_ADCCLKCTL_ACK, [#IOP_WUC_ADCCLKCTL]
+02da ---- a6fe                         biob0       /id0374
+02db ---- fb00                         out         R7, [#IOP_ANAIF_ADCCTL]
+02dc ---- 7078                         ld          R7, #BV_ADI16_ADC_SMPL_CYCLE_EXP
+02dd ---- fb54                         out         R7, [#IOP_ADICLR_ADC]
+02de ---- 7078                         ld          R7, #(15 << BI_ADI16_ADC_SMPL_CYCLE_EXP)
+02df ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+02e0 ---- 7003                         ld          R7, #(ADI16_ADC_EN | ADI16_ADC_RESET_N)
+02e1 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+02e2 ---- fd47                         nop
+02e3 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+02e4 ---- 1465                         jsr         AdiDdiRelease
+               ;?
+               ;? adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+02e5 ---- 7007                         ld          R7, #7
+02e6 ---- 1743                         jsr         AdccompbSelectGpioInput
+               ;? // Sample the analog sensor
+               ;?
+               ;? for(U16 n=0;n<SAMPLE_COUNT;n++){
+02e7 ---- 0000                         ld          R0, #0
+               /id0388:
+               ;?     adcGenManualTrigger();
+02e8 ---- 6403                             iobset      #0, [#IOP_ANAIF_ADCTRIG]
+               ;?     adcReadFifo(output.adcValues[n]);
+02e9 ---- 101f                             ld          R1, #EVCTL_SCEEVSEL_ADC_FIFO_NOT_EMPTY
+02ea ---- 9b2c                             out         R1, [#IOP_EVCTL_SCEWEVSEL]
+02eb ---- fdb1                             wev1        #WEVSEL_PROG
+02ec ---- 9902                             in          R1, [#IOP_ANAIF_ADCFIFO]
+02ed ---- 2082                             ld          R2, #(adcLevelTrigger/output/adcValues + 0)
+02ee ---- 9f3a                             st          R1, [R2+R0]
+               ;?     output.adcVal0 +=output.adcValues[n];
+02ef ---- 1082                             ld          R1, #(adcLevelTrigger/output/adcValues + 0)
+02f0 ---- af19                             ld          R2, [R1+R0]
+02f1 ---- 1881                             ld          R1, [#adcLevelTrigger/output/adcVal0]
+02f2 ---- 9d22                             add         R1, R2
+02f3 ---- 1c81                             st          R1, [#adcLevelTrigger/output/adcVal0]
+               ;? }
+02f4 ---- 8801                         add         R0, #1
+02f5 ---- 8a08                         cmp         R0, #8
+02f6 ---- aef1                         bltu        /id0388
+               ;? //average by dividing by 8
+               ;? output.adcVal0 >>=3;
+02f7 ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+02f8 ---- 8dab                         lsr         R0, #3
+02f9 ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? output.adcBuffer[10]= output.adcVal0;
+02fa ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+02fb ---- 0c7f                         st          R0, [#(adcLevelTrigger/output/adcBuffer + 10)]
+               ;?
+               ;? adcFlushFifo();
+02fc ---- 6500                         iobset      #1, [#IOP_ANAIF_ADCCTL]
+02fd ---- 4500                         iobclr      #1, [#IOP_ANAIF_ADCCTL]
+               ;? // Disable the ADC
+               ;? adcDisable();
+02fe ---- 1750                         jsr         AdcDisable
+               ;?
+               ;? // Enable the ADC
+               ;? fwDelayUs(850, FW_DELAY_RANGE_1_MS);
+02ff ---- 70a0                         ld          R7, #(((850 * 24 ) + ((1 << 7) - 1)) >> 7)
+0300 ---- 6007                         ld          R6, #7
+0301 ---- 173d                         jsr         FwDelay
+               ;?
+               ;? output.adcVal0 =0;
+0302 ---- 0000                         ld          R0, #0
+0303 ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? //Select CHAN 11
+               ;? gpioSetOutput(AUXIO_O_S0);
+0304 ---- 760e                         iobset      #(6 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (6 >> 3))]
+               ;? gpioSetOutput(AUXIO_O_S1);
+0305 ---- 750e                         iobset      #(5 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (5 >> 3))]
+               ;? gpioClearOutput(AUXIO_O_S2);
+0306 ---- 540e                         iobclr      #(4 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (4 >> 3))]
+               ;? gpioSetOutput(AUXIO_O_S3);
+0307 ---- 670e                         iobset      #(3 & 0x7), [#(IOP_AIODIO0_GPIODOUT + (3 >> 3))]
+               ;? adcEnableSync(ADC_REF_FIXED, ADC_SAMPLE_TIME_10P9_MS, ADC_TRIGGER_MANUAL);
+0308 ---- f502                         loop        #128, /id0396
+0309 ---- fd47                         nop
+030a ---- fd47                         nop
+030b ---- fd47                         nop
+               /id0396:
+030c ---- 7001                         ld          R7, #((0 | (((15 < 6) & (!0)) * ADI16_ADCREF_REF_ON_IDLE)) | ADI16_ADCREF_EN)
+030d ---- 1462                         jsr         AdiDdiAcquire
+030e ---- fb4d                         out         R7, [#IOP_ADISET_ADCREF]
+030f 8609 7101                         ld          R7, #((9 << IOB_ANAIF_ADCCTL_START_SRC) | 0x0001)
+0311 ---- 6431                         iobset      #IOB_WUC_ADCCLKCTL_REQ, [#IOP_WUC_ADCCLKCTL]
+               /id0397:
+0312 ---- 2531                         iobtst      #IOB_WUC_ADCCLKCTL_ACK, [#IOP_WUC_ADCCLKCTL]
+0313 ---- a6fe                         biob0       /id0397
+0314 ---- fb00                         out         R7, [#IOP_ANAIF_ADCCTL]
+0315 ---- 7078                         ld          R7, #BV_ADI16_ADC_SMPL_CYCLE_EXP
+0316 ---- fb54                         out         R7, [#IOP_ADICLR_ADC]
+0317 ---- 7078                         ld          R7, #(15 << BI_ADI16_ADC_SMPL_CYCLE_EXP)
+0318 ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+0319 ---- 7003                         ld          R7, #(ADI16_ADC_EN | ADI16_ADC_RESET_N)
+031a ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+031b ---- fd47                         nop
+031c ---- fb4c                         out         R7, [#IOP_ADISET_ADC]
+031d ---- 1465                         jsr         AdiDdiRelease
+               ;?
+               ;? adcSelectGpioInput(AUXIO_A_ADC_INPUT0);
+031e ---- 7007                         ld          R7, #7
+031f ---- 1743                         jsr         AdccompbSelectGpioInput
+               ;? // Sample the analog sensor
+               ;?
+               ;? for(U16 n=0;n<SAMPLE_COUNT;n++){
+0320 ---- 0000                         ld          R0, #0
+               /id0411:
+               ;?     adcGenManualTrigger();
+0321 ---- 6403                             iobset      #0, [#IOP_ANAIF_ADCTRIG]
+               ;?     adcReadFifo(output.adcValues[n]);
+0322 ---- 101f                             ld          R1, #EVCTL_SCEEVSEL_ADC_FIFO_NOT_EMPTY
+0323 ---- 9b2c                             out         R1, [#IOP_EVCTL_SCEWEVSEL]
+0324 ---- fdb1                             wev1        #WEVSEL_PROG
+0325 ---- 9902                             in          R1, [#IOP_ANAIF_ADCFIFO]
+0326 ---- 2082                             ld          R2, #(adcLevelTrigger/output/adcValues + 0)
+0327 ---- 9f3a                             st          R1, [R2+R0]
+               ;?     output.adcVal0 +=output.adcValues[n];
+0328 ---- 1082                             ld          R1, #(adcLevelTrigger/output/adcValues + 0)
+0329 ---- af19                             ld          R2, [R1+R0]
+032a ---- 1881                             ld          R1, [#adcLevelTrigger/output/adcVal0]
+032b ---- 9d22                             add         R1, R2
+032c ---- 1c81                             st          R1, [#adcLevelTrigger/output/adcVal0]
+               ;? }
+032d ---- 8801                         add         R0, #1
+032e ---- 8a08                         cmp         R0, #8
+032f ---- aef1                         bltu        /id0411
+               ;? //average by dividing by 8
+               ;? output.adcVal0 >>=3;
+0330 ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+0331 ---- 8dab                         lsr         R0, #3
+0332 ---- 0c81                         st          R0, [#adcLevelTrigger/output/adcVal0]
+               ;?
+               ;? output.adcBuffer[11]= output.adcVal0;
+0333 ---- 0881                         ld          R0, [#adcLevelTrigger/output/adcVal0]
+0334 ---- 0c80                         st          R0, [#(adcLevelTrigger/output/adcBuffer + 11)]
+               ;?
+               ;? adcFlushFifo();
+0335 ---- 6500                         iobset      #1, [#IOP_ANAIF_ADCCTL]
+0336 ---- 4500                         iobclr      #1, [#IOP_ANAIF_ADCCTL]
+               ;? // Disable the ADC
+               ;? adcDisable();
+0337 ---- 1750                         jsr         AdcDisable
+               ;?
+               ;?
+               ;? // Signal the application processor.
+               ;? fwGenAlertInterrupt();
+0338 ---- 086c                         ld          R0, [#fwCtrlInt/bvTaskIoAlert]
+0339 ---- 8201                         or          R0, #(1 << 0)
+033a ---- 0c6c                         st          R0, [#fwCtrlInt/bvTaskIoAlert]
+               ;?
+               ;?
+               adcLevelTrigger/executeDone:
+033b ---- adb7                         rts
+
+
+
+
+               adcLevelTrigger/terminate:
+               ;?
+               adcLevelTrigger/terminateDone:
+033c ---- adb7                         rts
+               .segment end "Task: adc level trigger"
+
+
+               .segment begin "Procedure Library"
+               ; 3 + 5 CPU cycles = 16 clock cycles = 0.66 microsecond are added to the specified delay (parameter
+               ; loading and timer configuration)
+               ;
+               ; PARAMETERS:
+               ;     R7 = Delay
+               ;     R6 = Prescaler exponent
+               ;
+               ; CLOBBERS:
+               ;     R6
+               FwDelay:
+                                       ; Set the delay
+033d ---- fb0c                         out         R7, [#IOP_TIMER01_T0TARGET]
+
+                                       ; Configure the timer (from clock, single-mode, prescaler exponent = R6)
+033e ---- eda4                         lsl         R6, #4
+033f ---- eb09                         out         R6, [#IOP_TIMER01_T0CFG]
+
+                                       ; Start the timer, wait for it to trigger, and stop it
+0340 ---- 640b                         iobset      #0, [#IOP_TIMER01_T0CTL]
+0341 ---- cdb1                         wev1        #WEVSEL_TIMER0
+0342 ---- adb7                         rts
+
+
+
+
+               ; PARAMETERS:
+               ;     R7 = AUX I/O index (0-7)
+               ;
+               ; CLOBBERS:
+               ;     R6, R7
+               AdccompbSelectGpioInput:
+                                       ; Make sure that the AUX I/O index is valid
+0343 ---- f007                         and         R7, #0x0007
+
+                                       ; Disconnect all signals
+0344 ---- 1462                         jsr         AdiDdiAcquire
+0345 86ff 63f8                         ld          R6, #(BV_ADI16_MUX2_ADCCOMPB_IN | BV_ADI16_MUX3_ADCCOMPB_IN)
+0347 ---- eb51                         out         R6, [#IOP_ADICLR_MUX2_MUX3]
+
+                                       ; Connect the specified GPIO
+0348 8680 6000                         ld          R6, #ADI16_MUX3_ADCCOMPB_IN_AUXIO0
+034a ---- ed8f                         lsr         R6, R7
+034b ---- eb49                         out         R6, [#IOP_ADISET_MUX2_MUX3]
+
+                                       ; Ensure that it has taken effect
+034c ---- fd47                         nop         ; Workaround for back-to-back ADI/DDI accesses
+034d ---- eb49                         out         R6, [#IOP_ADISET_MUX2_MUX3]
+034e ---- 1465                         jsr         AdiDdiRelease
+034f ---- adb7                         rts
+
+
+
+
+               ; CLOBBERS:
+               ;     R7
+               AdcDisable:
+                                       ; Disable the ADC reference
+0350 ---- 1462                         jsr         AdiDdiAcquire
+0351 ---- 7079                         ld          R7, #((ADI16_ADCREF_EN | ADI16_ADCREF_REF_ON_IDLE) | (ADI16_ADCREF_SRC | (ADI16_ADCREF_EXT | ADI16_ADCREF_IOMUX)))
+0352 ---- fb55                         out         R7, [#IOP_ADICLR_ADCREF]
+
+                                       ; Assert reset and disable the ADC
+0353 ---- 71fb                         ld          R7, #((ADI16_ADC_EN | ADI16_ADC_RESET_N) | (BV_ADI16_ADC_SMPL_CYCLE_EXP | (BV_ADI16_ADC_SMPL_MODE | ADI16_ADC_SCALE_DIS)))
+0354 ---- fb54                         out         R7, [#IOP_ADICLR_ADC]
+
+                                       ; Ensure that it has taken effect
+0355 ---- fd47                         nop         ; Workaround for back-to-back ADI/DDI accesses
+0356 ---- fb54                         out         R7, [#IOP_ADICLR_ADC]
+0357 ---- 1465                         jsr         AdiDdiRelease
+
+                                       ; Disable the ADC clock (no need to wait since IOB_WUC_ADCCLKCTL_ACK goes low immediately)
+0358 ---- 4431                         iobclr      #IOB_WUC_ADCCLKCTL_REQ, [#IOP_WUC_ADCCLKCTL]
+
+                                       ; Disable the ADC data interface
+0359 ---- 4400                         iobclr      #0, [#IOP_ANAIF_ADCCTL]
+
+035a ---- adb7                         rts
+               .segment end "Procedure Library"
+
+
+; Generated by DESKTOP-2L91N3E at 2024-05-27 09:55:04.772
